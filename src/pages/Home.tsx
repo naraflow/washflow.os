@@ -51,17 +51,23 @@ const Home = () => {
         <nav className="container flex h-16 items-center justify-between">
           <div className="flex items-center gap-2">
             <Sparkles className="h-6 w-6 text-primary" />
-            <span className="text-xl font-bold text-primary">SmartLink</span>
+            <span className="text-xl font-bold text-primary">washflow.os</span>
           </div>
           
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center gap-8">
-            <a href="#features" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
+            <Link to="/features" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
               Fitur
-            </a>
-            <a href="#benefits" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
+            </Link>
+            <Link to="/benefits" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
               Keuntungan
-            </a>
+            </Link>
+            <Link to="/about" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
+              Tentang
+            </Link>
+            <Link to="/how-it-works" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
+              Cara Kerja
+            </Link>
             <a href="#pricing" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
               Biaya
             </a>
@@ -83,7 +89,7 @@ const Home = () => {
             </Button>
             <Button 
               size="sm" 
-              className="bg-primary hover:bg-primary-hover"
+              className="bg-primary text-primary-foreground hover:bg-primary-hover"
               onClick={() => setTrialModalOpen(true)}
             >
               Coba Gratis
@@ -103,20 +109,34 @@ const Home = () => {
         {mobileMenuOpen && (
           <div className="md:hidden border-t bg-background">
             <div className="container py-4 space-y-4">
-              <a 
-                href="#features" 
+              <Link 
+                to="/features" 
                 className="block text-sm font-medium text-foreground hover:text-primary transition-colors"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Fitur
-              </a>
-              <a 
-                href="#benefits" 
+              </Link>
+              <Link 
+                to="/benefits" 
                 className="block text-sm font-medium text-foreground hover:text-primary transition-colors"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Keuntungan
-              </a>
+              </Link>
+              <Link 
+                to="/about" 
+                className="block text-sm font-medium text-foreground hover:text-primary transition-colors"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Tentang
+              </Link>
+              <Link 
+                to="/how-it-works" 
+                className="block text-sm font-medium text-foreground hover:text-primary transition-colors"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Cara Kerja
+              </Link>
               <a 
                 href="#pricing" 
                 className="block text-sm font-medium text-foreground hover:text-primary transition-colors"
@@ -143,7 +163,7 @@ const Home = () => {
                 </Button>
                 <Button 
                   size="sm" 
-                  className="w-full bg-primary hover:bg-primary-hover"
+                  className="w-full bg-primary text-primary-foreground hover:bg-primary-hover"
                   onClick={() => {
                     setTrialModalOpen(true);
                     setMobileMenuOpen(false);
@@ -172,7 +192,7 @@ const Home = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button 
                 size="lg" 
-                className="bg-white text-primary hover:bg-white/90 font-semibold"
+                className="bg-white text-primary hover:bg-white/90 font-semibold shadow-lg"
                 onClick={() => setTrialModalOpen(true)}
               >
                 Coba Gratis 30 Hari
@@ -180,151 +200,12 @@ const Home = () => {
               <Button 
                 size="lg" 
                 variant="outline" 
-                className="border-white text-white hover:bg-white hover:text-primary"
+                className="border-2 border-white text-white hover:bg-white/10 hover:text-white font-semibold bg-transparent"
                 onClick={() => setDemoModalOpen(true)}
               >
                 Ajukan Demo
               </Button>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section id="features" className="py-20 bg-secondary/30">
-        <div className="container">
-          <div className="mx-auto max-w-2xl text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4">Seluruh Manajemen Terintegrasi</h2>
-            <p className="text-muted-foreground">
-              Kelola seluruh aspek bisnis laundry Anda dalam satu platform yang powerful
-            </p>
-          </div>
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            <Card className="p-6 hover:shadow-lg transition-shadow">
-              <Users className="h-12 w-12 text-primary mb-4" />
-              <h3 className="text-xl font-semibold mb-2">Manajemen Staff</h3>
-              <p className="text-muted-foreground">
-                Kelola karyawan, absensi, dan performa tim dengan mudah dalam satu dashboard
-              </p>
-            </Card>
-            <Card className="p-6 hover:shadow-lg transition-shadow">
-              <TrendingUp className="h-12 w-12 text-accent mb-4" />
-              <h3 className="text-xl font-semibold mb-2">Laporan Real-time</h3>
-              <p className="text-muted-foreground">
-                Pantau transaksi, pendapatan, dan performa bisnis secara real-time
-              </p>
-            </Card>
-            <Card className="p-6 hover:shadow-lg transition-shadow">
-              <Shield className="h-12 w-12 text-primary mb-4" />
-              <h3 className="text-xl font-semibold mb-2">Keamanan Data</h3>
-              <p className="text-muted-foreground">
-                Data bisnis Anda aman dengan enkripsi tingkat enterprise
-              </p>
-            </Card>
-            <Card className="p-6 hover:shadow-lg transition-shadow">
-              <Zap className="h-12 w-12 text-warning mb-4" />
-              <h3 className="text-xl font-semibold mb-2">Otomasi Proses</h3>
-              <p className="text-muted-foreground">
-                Otomatiskan tugas berulang dan fokus pada pertumbuhan bisnis
-              </p>
-            </Card>
-            <Card className="p-6 hover:shadow-lg transition-shadow">
-              <Clock className="h-12 w-12 text-accent mb-4" />
-              <h3 className="text-xl font-semibold mb-2">Tracking Order</h3>
-              <p className="text-muted-foreground">
-                Lacak setiap pesanan dari penjemputan hingga pengiriman
-              </p>
-            </Card>
-            <Card className="p-6 hover:shadow-lg transition-shadow">
-              <Sparkles className="h-12 w-12 text-primary mb-4" />
-              <h3 className="text-xl font-semibold mb-2">Notifikasi Otomatis</h3>
-              <p className="text-muted-foreground">
-                Informasi otomatis kepada pelanggan via WhatsApp dan SMS
-              </p>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* Benefits Section */}
-      <section id="benefits" className="py-20">
-        <div className="container">
-          <div className="grid gap-12 lg:grid-cols-2 items-center">
-            <div>
-              <h2 className="text-3xl font-bold mb-6">Mengapa Memilih SmartLink?</h2>
-              <div className="space-y-6">
-                <div className="flex gap-4">
-                  <div className="flex-shrink-0 w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                    <span className="text-primary font-bold">1</span>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold mb-2">Hemat Waktu & Biaya</h3>
-                    <p className="text-muted-foreground">
-                      Kurangi waktu administrasi hingga 70% dan fokus pada pengembangan bisnis
-                    </p>
-                  </div>
-                </div>
-                <div className="flex gap-4">
-                  <div className="flex-shrink-0 w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                    <span className="text-primary font-bold">2</span>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold mb-2">Tingkatkan Pendapatan</h3>
-                    <p className="text-muted-foreground">
-                      Rata-rata peningkatan pendapatan 40% dalam 6 bulan pertama
-                    </p>
-                  </div>
-                </div>
-                <div className="flex gap-4">
-                  <div className="flex-shrink-0 w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                    <span className="text-primary font-bold">3</span>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold mb-2">Mudah Digunakan</h3>
-                    <p className="text-muted-foreground">
-                      Interface intuitif yang dapat digunakan tanpa pelatihan khusus
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="bg-gradient-to-br from-primary/10 to-accent/10 rounded-2xl p-8 lg:p-12">
-              <div className="space-y-4">
-                <div className="text-center p-6 bg-white rounded-xl shadow-md">
-                  <div className="text-4xl font-bold text-primary mb-2">500+</div>
-                  <div className="text-muted-foreground">Outlet Aktif</div>
-                </div>
-                <div className="text-center p-6 bg-white rounded-xl shadow-md">
-                  <div className="text-4xl font-bold text-accent mb-2">50K+</div>
-                  <div className="text-muted-foreground">Transaksi Bulanan</div>
-                </div>
-                <div className="text-center p-6 bg-white rounded-xl shadow-md">
-                  <div className="text-4xl font-bold text-primary mb-2">98%</div>
-                  <div className="text-muted-foreground">Kepuasan Pelanggan</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-br from-primary to-primary-hover">
-        <div className="container">
-          <div className="mx-auto max-w-3xl text-center">
-            <h2 className="text-3xl font-bold text-white mb-4">
-              Siap Mengembangkan Bisnis Laundry Anda?
-            </h2>
-            <p className="text-lg text-white/90 mb-8">
-              Bergabung dengan ratusan pemilik laundry yang telah merasakan manfaatnya
-            </p>
-            <Button 
-              size="lg" 
-              className="bg-white text-primary hover:bg-white/90 font-semibold"
-              onClick={() => setTrialModalOpen(true)}
-            >
-              Mulai Gratis Sekarang
-            </Button>
           </div>
         </div>
       </section>
@@ -336,7 +217,7 @@ const Home = () => {
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <Sparkles className="h-5 w-5 text-primary" />
-                <span className="font-bold text-primary">SmartLink</span>
+                <span className="font-bold text-primary">washflow.os</span>
               </div>
               <p className="text-sm text-muted-foreground">
                 Revolusi bisnis laundry melalui ekosistem digital
@@ -345,7 +226,7 @@ const Home = () => {
             <div>
               <h4 className="font-semibold mb-4">Produk</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#" className="hover:text-primary">Fitur</a></li>
+                <li><Link to="/features" className="hover:text-primary">Fitur</Link></li>
                 <li><a href="#" className="hover:text-primary">Biaya</a></li>
                 <li><a href="#" className="hover:text-primary">Demo</a></li>
               </ul>
@@ -367,7 +248,7 @@ const Home = () => {
             </div>
           </div>
           <div className="mt-12 pt-8 border-t text-center text-sm text-muted-foreground">
-            © 2024 SmartLink. All rights reserved.
+            © 2024 washflow.os. All rights reserved.
           </div>
         </div>
       </footer>
@@ -437,7 +318,7 @@ const Home = () => {
           <DialogHeader>
             <DialogTitle>Ajukan Demo</DialogTitle>
             <DialogDescription>
-              Jadwalkan demo dengan tim kami untuk melihat bagaimana SmartLink dapat membantu bisnis Anda
+              Jadwalkan demo dengan tim kami untuk melihat bagaimana washflow.os dapat membantu bisnis Anda
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleDemoSubmit} className="space-y-4">
