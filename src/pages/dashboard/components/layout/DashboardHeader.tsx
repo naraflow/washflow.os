@@ -24,14 +24,14 @@ export const DashboardHeader = () => {
             <WashflowLogo size={28} />
             <span className="text-xl font-bold text-primary">washflow.os</span>
           </Link>
-          <div className="hidden md:flex items-center gap-6">
-            <div className="text-sm">
+          <div className="hidden md:flex items-center gap-6 ml-6 pl-6 border-l">
+            <div className="flex items-center gap-2 text-sm">
               <span className="text-muted-foreground">Hari Ini</span>
-              <p className="font-semibold text-primary">Rp {todayRevenue.toLocaleString('id-ID')}</p>
+              <span className="font-semibold text-primary">Rp {todayRevenue.toLocaleString('id-ID')}</span>
             </div>
-            <div className="text-sm">
+            <div className="flex items-center gap-2 text-sm">
               <span className="text-muted-foreground">Orders</span>
-              <p className="font-semibold">{todayOrders.length}</p>
+              <span className="font-semibold text-primary">{todayOrders.length}</span>
             </div>
           </div>
         </div>
@@ -40,10 +40,9 @@ export const DashboardHeader = () => {
           <div className="hidden sm:flex items-center gap-3 text-sm">
             <div className="flex items-center gap-2 px-3 py-1.5 bg-secondary rounded-lg">
               <User className="h-4 w-4 text-muted-foreground" />
-              <div className="text-right">
-                <p className="font-medium">Admin User</p>
-                <p className="text-xs text-muted-foreground">Super Admin</p>
-              </div>
+              <span className="font-medium">Admin User</span>
+              <span className="text-muted-foreground">•</span>
+              <span className="text-xs text-muted-foreground">Super Admin</span>
             </div>
           </div>
           <Button variant="outline" size="sm" asChild>

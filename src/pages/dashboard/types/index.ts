@@ -1,10 +1,13 @@
 // Dashboard Types
+import type { WorkflowStage } from './workflow';
+
 export interface Order {
   id: string;
   customerName: string;
   customerPhone: string;
   serviceId: string;
   serviceName?: string;
+  serviceType?: 'regular' | 'wash_iron' | 'iron_only' | 'express' | 'dry_clean' | 'custom'; // Store service type for workflow lookup
   weight: number;
   quantity?: number;
   unitPrice: number;
@@ -26,6 +29,10 @@ export interface Order {
     address?: string;
     status?: string;
   };
+  // Workflow tracking fields
+  currentStage?: WorkflowStage;
+  completedStages?: WorkflowStage[];
+  estimatedCompletion?: string;
 }
 
 export interface Customer {
@@ -232,6 +239,8 @@ export interface OwnerDashboard {
   }[];
 }
 
+import type { WorkflowStage } from './workflow';
+
 export interface LaundryItem {
   id: string;
   orderId: string;
@@ -241,6 +250,21 @@ export interface LaundryItem {
   status: 'new' | 'washing' | 'drying' | 'ironing' | 'ready' | 'qc_passed' | 'qc_failed';
   machineId?: string;
   createdAt: string;
+  // RFID and workflow tracking
+  rfidTagId?: string;
+  serviceType?: 'regular' | 'wash_iron' | 'iron_only' | 'express' | 'dry_clean' | 'custom';
+  currentStage?: WorkflowStage;
+  completedStages?: WorkflowStage[];
+  nextValidStages?: WorkflowStage[];
+  timeline?: {
+    [key in WorkflowStage]?: {
+      enteredAt: string;
+      completedAt?: string;
+      scannedBy?: string;
+      machineId?: string;
+    };
+  };
+  estimatedCompletion?: string;
 }
 
 export interface QualityControl {
@@ -253,5 +277,29 @@ export interface QualityControl {
   notes?: string;
   checkedBy?: string;
   checkedAt: string;
+}
+
+// RFID tracking types
+export interface RFIDTag {
+  id: string;
+  rfidCode: string; // Unique RFID identifier
+  orderId: string;
+  laundryItemId?: string;
+  assignedAt: string;
+  status: 'active' | 'lost' | 'replaced';
+}
+
+export interface RFIDScanEvent {
+  id: string;
+  rfidCode: string;
+  orderId: string;
+  laundryItemId?: string;
+  station: WorkflowStage;
+  scannedBy?: string; // Staff ID
+  scannedAt: string;
+  location?: string; // Physical location/outlet
+  machineId?: string; // If scanned at a machine
+  isValid: boolean; // Validated against service workflow
+  validationError?: string; // If scan is invalid
 }
 

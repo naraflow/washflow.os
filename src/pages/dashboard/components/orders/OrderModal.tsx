@@ -101,6 +101,7 @@ export const OrderModal = ({ order, onClose }: OrderModalProps) => {
       customerPhone: formData.customerPhone,
       serviceId: formData.serviceId,
       serviceName: service.name,
+      serviceType: service.type, // Store service type for workflow
       weight: formData.weight,
       unitPrice: service.unitPrice,
       subtotal: service.unitPrice * formData.weight * (formData.express ? 1.5 : 1),
@@ -113,6 +114,9 @@ export const OrderModal = ({ order, onClose }: OrderModalProps) => {
       express: formData.express,
       createdAt: order?.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString(),
+      // Initialize workflow tracking
+      currentStage: order?.currentStage || 'reception',
+      completedStages: order?.completedStages || [],
     };
 
     if (order) {

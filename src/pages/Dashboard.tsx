@@ -18,6 +18,11 @@ import { PickupDeliveryList } from "./dashboard/components/pickup-delivery/Picku
 import { MachineList } from "./dashboard/components/machines/MachineList";
 import { OutletForm } from "./dashboard/components/outlets/OutletForm";
 import { OrderModal } from "./dashboard/components/orders/OrderModal";
+import { WorkflowOverview } from "./dashboard/components/workflow/WorkflowOverview";
+import { ReceptionView } from "./dashboard/components/workflow/ReceptionView";
+import { ProcessingView } from "./dashboard/components/workflow/ProcessingView";
+import { QualityControlView } from "./dashboard/components/workflow/QualityControlView";
+import { ReadyView } from "./dashboard/components/workflow/ReadyView";
 import { useDashboardStore } from "./dashboard/store/useDashboardStore";
 import { useMachineTimer } from "./dashboard/hooks/useMachineTimer";
 
@@ -228,20 +233,79 @@ const Dashboard = () => {
       <div className="container py-8 px-4">
         <QuickActions
           onNewOrder={() => setIsOrderModalOpen(true)}
-          onExport={handleExport}
         />
 
-        <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-4">
-          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-8 lg:w-auto">
-            <TabsTrigger value="orders">Orders</TabsTrigger>
-            <TabsTrigger value="customers">Pelanggan</TabsTrigger>
-            <TabsTrigger value="services">Layanan</TabsTrigger>
-            <TabsTrigger value="outlets">Outlet</TabsTrigger>
-            <TabsTrigger value="pickup-delivery">Pickup/Delivery</TabsTrigger>
-            <TabsTrigger value="machines">Mesin</TabsTrigger>
-            <TabsTrigger value="reports">Laporan</TabsTrigger>
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-          </TabsList>
+        <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
+          {/* Workflow Section */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <div className="h-px flex-1 bg-border"></div>
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2">
+                Workflow
+              </span>
+              <div className="h-px flex-1 bg-border"></div>
+            </div>
+            <TabsList className="grid w-full grid-cols-2 lg:grid-cols-6 lg:w-auto gap-2 p-2 bg-transparent">
+              <TabsTrigger value="workflow-overview" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors">Overview</TabsTrigger>
+              <TabsTrigger value="reception" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors">Order</TabsTrigger>
+              <TabsTrigger value="processing" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors">Processing</TabsTrigger>
+              <TabsTrigger value="quality-control" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors">QC</TabsTrigger>
+              <TabsTrigger value="ready" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors">Ready</TabsTrigger>
+              <TabsTrigger value="pickup-delivery" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors">Pickup/Delivery</TabsTrigger>
+            </TabsList>
+          </div>
+
+          {/* Services & Promo Section */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <div className="h-px flex-1 bg-border"></div>
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2">
+                Services & Promo
+              </span>
+              <div className="h-px flex-1 bg-border"></div>
+            </div>
+            <TabsList className="grid w-full grid-cols-2 lg:grid-cols-2 lg:w-auto gap-2 p-2 bg-transparent">
+              <TabsTrigger value="services" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors">Layanan</TabsTrigger>
+              <TabsTrigger value="promo" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors">Promo</TabsTrigger>
+            </TabsList>
+          </div>
+
+          {/* Management Section */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <div className="h-px flex-1 bg-border"></div>
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2">
+                Management
+              </span>
+              <div className="h-px flex-1 bg-border"></div>
+            </div>
+            <TabsList className="grid w-full grid-cols-4 lg:grid-cols-4 lg:w-auto gap-2 p-2 bg-transparent">
+              <TabsTrigger value="outlets" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors">Outlet</TabsTrigger>
+              <TabsTrigger value="customers" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors">Pelanggan</TabsTrigger>
+              <TabsTrigger value="machines" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors">Mesin</TabsTrigger>
+              <TabsTrigger value="reports" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors">Laporan</TabsTrigger>
+            </TabsList>
+          </div>
+
+          <TabsContent value="workflow-overview" className="space-y-4">
+            <WorkflowOverview />
+          </TabsContent>
+
+          <TabsContent value="reception" className="space-y-4">
+            <ReceptionView />
+          </TabsContent>
+
+          <TabsContent value="processing" className="space-y-4">
+            <ProcessingView />
+          </TabsContent>
+
+          <TabsContent value="quality-control" className="space-y-4">
+            <QualityControlView />
+          </TabsContent>
+
+          <TabsContent value="ready" className="space-y-4">
+            <ReadyView />
+          </TabsContent>
 
           <TabsContent value="orders" className="space-y-4">
             <OrderList />
@@ -255,12 +319,21 @@ const Dashboard = () => {
             <ServiceList />
           </TabsContent>
 
-          <TabsContent value="outlets" className="space-y-4">
-            <OutletForm />
-          </TabsContent>
-
           <TabsContent value="pickup-delivery" className="space-y-4">
             <PickupDeliveryList />
+          </TabsContent>
+
+          <TabsContent value="promo" className="space-y-4">
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold mb-4">Promo Management</h3>
+              <p className="text-muted-foreground">
+                Fitur promo akan segera tersedia. Di sini Anda dapat mengelola promosi dan diskon untuk layanan.
+              </p>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="outlets" className="space-y-4">
+            <OutletForm />
           </TabsContent>
 
           <TabsContent value="machines" className="space-y-4">

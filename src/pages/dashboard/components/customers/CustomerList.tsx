@@ -7,6 +7,7 @@ import { useDashboardStore } from "../../store/useDashboardStore";
 import type { Customer } from "../../types";
 import { format } from "date-fns";
 import { CustomerModal } from "./CustomerModal";
+import { CustomerDetailsModal } from "./CustomerDetailsModal";
 
 export const CustomerList = () => {
   const customers = useDashboardStore((state) => state.customers);
@@ -14,6 +15,7 @@ export const CustomerList = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
 
   const filteredCustomers = customers.filter(
     (customer) =>
@@ -71,7 +73,11 @@ export const CustomerList = () => {
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {sortedCustomers.map((customer) => (
-            <Card key={customer.id} className="p-4 hover:shadow-md transition-shadow">
+            <Card 
+              key={customer.id} 
+              className="p-4 hover:shadow-md transition-shadow cursor-pointer"
+              onClick={() => setSelectedCustomer(customer)}
+            >
               <div className="space-y-3">
                 <div>
                   <h4 className="font-semibold text-lg">{customer.name}</h4>
@@ -110,7 +116,10 @@ export const CustomerList = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleEdit(customer)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEdit(customer);
+                    }}
                     className="flex-1"
                   >
                     <Edit className="h-4 w-4 mr-1" />
@@ -119,7 +128,10 @@ export const CustomerList = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleDelete(customer.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(customer.id);
+                    }}
                     className="text-destructive hover:text-destructive"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -138,6 +150,15 @@ export const CustomerList = () => {
             setIsModalOpen(false);
             setEditingCustomer(null);
           }}
+        />
+      )}
+
+      {selectedCustomer && (
+        <CustomerDetailsModal
+          customer={selectedCustomer}
+          onClose={() => setSelectedCustomer(null)}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
         />
       )}
     </div>
