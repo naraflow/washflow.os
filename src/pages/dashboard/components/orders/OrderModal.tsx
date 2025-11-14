@@ -95,8 +95,20 @@ export const OrderModal = ({ order, onClose }: OrderModalProps) => {
       customer = newCustomer;
     }
 
+    // Generate unique order ID with format: ORD-YYYYMMDD-HHMMSS-XXXX
+    const generateOrderId = () => {
+      const now = new Date();
+      const dateStr = now.toISOString().slice(0, 10).replace(/-/g, ''); // YYYYMMDD
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      const timeStr = `${hours}${minutes}${seconds}`; // HHMMSS
+      const randomStr = Math.random().toString(36).substr(2, 4).toUpperCase();
+      return `ORD-${dateStr}-${timeStr}-${randomStr}`;
+    };
+
     const orderData: Order = {
-      id: order?.id || `order-${Date.now()}`,
+      id: order?.id || generateOrderId(),
       customerName: formData.customerName,
       customerPhone: formData.customerPhone,
       serviceId: formData.serviceId,

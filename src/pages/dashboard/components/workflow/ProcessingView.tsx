@@ -20,7 +20,7 @@ export const ProcessingView = () => {
         if (!service) return null;
 
         const workflow = getWorkflowConfig(service.type);
-        const processingStages: WorkflowStage[] = ['washing', 'drying', 'ironing'];
+        const processingStages: WorkflowStage[] = ['washing', 'drying'];
         const currentStage = order.currentStage || 'reception';
 
         // Only include if this service includes processing stages and order is in one
@@ -57,8 +57,6 @@ export const ProcessingView = () => {
         return <Droplet className="h-4 w-4" />;
       case 'drying':
         return <Wind className="h-4 w-4" />;
-      case 'ironing':
-        return <Sparkles className="h-4 w-4" />;
       default:
         return null;
     }
@@ -69,6 +67,7 @@ export const ProcessingView = () => {
       washing: 'Washing',
       drying: 'Drying',
       ironing: 'Ironing',
+      packing: 'Packing',
       reception: 'Reception',
       sorting: 'Sorting',
       qc: 'Quality Control',
@@ -90,13 +89,13 @@ export const ProcessingView = () => {
       {processingItems.length === 0 ? (
         <Card className="p-6">
           <p className="text-muted-foreground text-center">
-            No items currently in processing. Items will appear here when they enter washing, drying, or ironing stages.
+            No items currently in processing. Items will appear here when they enter washing or drying stages.
           </p>
         </Card>
       ) : (
         <Tabs defaultValue="washing" className="space-y-4">
           <TabsList>
-            {(['washing', 'drying', 'ironing'] as WorkflowStage[]).map((stage) => (
+            {(['washing', 'drying'] as WorkflowStage[]).map((stage) => (
               <TabsTrigger key={stage} value={stage} disabled={!itemsByStage[stage]?.length}>
                 {getStageIcon(stage)}
                 <span className="ml-2">
@@ -106,7 +105,7 @@ export const ProcessingView = () => {
             ))}
           </TabsList>
 
-          {(['washing', 'drying', 'ironing'] as WorkflowStage[]).map((stage) => (
+          {(['washing', 'drying'] as WorkflowStage[]).map((stage) => (
             <TabsContent key={stage} value={stage} className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {(itemsByStage[stage] || []).map((item: any) => (

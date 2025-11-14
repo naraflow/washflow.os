@@ -20,8 +20,11 @@ import { OutletForm } from "./dashboard/components/outlets/OutletForm";
 import { OrderModal } from "./dashboard/components/orders/OrderModal";
 import { WorkflowOverview } from "./dashboard/components/workflow/WorkflowOverview";
 import { ReceptionView } from "./dashboard/components/workflow/ReceptionView";
-import { ProcessingView } from "./dashboard/components/workflow/ProcessingView";
-import { QualityControlView } from "./dashboard/components/workflow/QualityControlView";
+import { SortingView } from "./dashboard/components/workflow/SortingView";
+import { WashingView } from "./dashboard/components/workflow/WashingView";
+import { DryingView } from "./dashboard/components/workflow/DryingView";
+import { IronView } from "./dashboard/components/workflow/IronView";
+import { PackingView } from "./dashboard/components/workflow/PackingView";
 import { ReadyView } from "./dashboard/components/workflow/ReadyView";
 import { useDashboardStore } from "./dashboard/store/useDashboardStore";
 import { useMachineTimer } from "./dashboard/hooks/useMachineTimer";
@@ -104,24 +107,6 @@ const Dashboard = () => {
               <span className="text-xl font-bold text-primary">washflow.os</span>
             </div>
             
-            <div className="flex items-center gap-3">
-              <Button
-                variant={!isSignUp ? "default" : "ghost"}
-                size="sm"
-                onClick={() => setIsSignUp(false)}
-                className={!isSignUp ? "" : "text-muted-foreground"}
-              >
-                Login
-              </Button>
-              <Button
-                variant={isSignUp ? "default" : "ghost"}
-                size="sm"
-                onClick={() => setIsSignUp(true)}
-                className={isSignUp ? "" : "text-muted-foreground"}
-              >
-                Sign Up
-              </Button>
-            </div>
           </nav>
         </header>
 
@@ -190,6 +175,14 @@ const Dashboard = () => {
                 <Button type="submit" className="w-full">
                   Daftar
                 </Button>
+                <Button 
+                  type="button"
+                  variant="outline" 
+                  className="w-full"
+                  onClick={() => setIsSignUp(false)}
+                >
+                  Masuk
+                </Button>
               </form>
             ) : (
               <form onSubmit={handleLogin} className="space-y-4">
@@ -218,6 +211,14 @@ const Dashboard = () => {
                 <Button type="submit" className="w-full">
                   Masuk
                 </Button>
+                <Button 
+                  type="button"
+                  variant="outline" 
+                  className="w-full"
+                  onClick={() => setIsSignUp(true)}
+                >
+                  Daftar
+                </Button>
               </form>
             )}
           </Card>
@@ -245,11 +246,14 @@ const Dashboard = () => {
               </span>
               <div className="h-px flex-1 bg-border"></div>
             </div>
-            <TabsList className="grid w-full grid-cols-2 lg:grid-cols-6 lg:w-auto gap-2 p-2 bg-transparent">
+            <TabsList className="grid w-full grid-cols-2 lg:grid-cols-9 lg:w-auto gap-2 p-2 bg-transparent">
               <TabsTrigger value="workflow-overview" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors">Overview</TabsTrigger>
               <TabsTrigger value="reception" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors">Order</TabsTrigger>
-              <TabsTrigger value="processing" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors">Processing</TabsTrigger>
-              <TabsTrigger value="quality-control" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors">QC</TabsTrigger>
+              <TabsTrigger value="sorting" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors">Sorting</TabsTrigger>
+              <TabsTrigger value="washing" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors">Washing</TabsTrigger>
+              <TabsTrigger value="drying" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors">Drying</TabsTrigger>
+              <TabsTrigger value="ironing" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors">Ironing</TabsTrigger>
+              <TabsTrigger value="packing" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors">Packing</TabsTrigger>
               <TabsTrigger value="ready" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors">Ready</TabsTrigger>
               <TabsTrigger value="pickup-delivery" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors">Pickup/Delivery</TabsTrigger>
             </TabsList>
@@ -295,12 +299,24 @@ const Dashboard = () => {
             <ReceptionView />
           </TabsContent>
 
-          <TabsContent value="processing" className="space-y-4">
-            <ProcessingView />
+          <TabsContent value="sorting" className="space-y-4">
+            <SortingView />
           </TabsContent>
 
-          <TabsContent value="quality-control" className="space-y-4">
-            <QualityControlView />
+          <TabsContent value="washing" className="space-y-4">
+            <WashingView />
+          </TabsContent>
+
+          <TabsContent value="drying" className="space-y-4">
+            <DryingView />
+          </TabsContent>
+
+          <TabsContent value="ironing" className="space-y-4">
+            <IronView />
+          </TabsContent>
+
+          <TabsContent value="packing" className="space-y-4">
+            <PackingView />
           </TabsContent>
 
           <TabsContent value="ready" className="space-y-4">

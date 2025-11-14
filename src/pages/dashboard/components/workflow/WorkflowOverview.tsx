@@ -29,6 +29,7 @@ const getStageLabel = (stage: WorkflowStage): string => {
     washing: 'Washing',
     drying: 'Drying',
     ironing: 'Ironing',
+    packing: 'Packing',
     qc: 'QC',
     ready: 'Ready',
     picked: 'Picked',
@@ -43,6 +44,7 @@ const getStageColor = (stage: WorkflowStage): string => {
     washing: 'bg-cyan-500',
     drying: 'bg-yellow-500',
     ironing: 'bg-orange-500',
+    packing: 'bg-pink-500',
     qc: 'bg-green-500',
     ready: 'bg-emerald-500',
     picked: 'bg-gray-500',
@@ -57,6 +59,7 @@ const getStageBorderColor = (stage: WorkflowStage): string => {
     washing: 'border-cyan-600',
     drying: 'border-yellow-600',
     ironing: 'border-orange-600',
+    packing: 'border-pink-600',
     qc: 'border-green-600',
     ready: 'border-emerald-600',
     picked: 'border-gray-600',
@@ -134,7 +137,7 @@ export const WorkflowOverview = () => {
       });
     });
     // Sort stages in typical workflow order
-    const stageOrder: WorkflowStage[] = ['reception', 'sorting', 'washing', 'drying', 'ironing', 'qc', 'ready', 'picked'];
+    const stageOrder: WorkflowStage[] = ['reception', 'sorting', 'washing', 'drying', 'ironing', 'packing', 'qc', 'ready', 'picked'];
     return Array.from(stages).sort((a, b) => {
       const aIndex = stageOrder.indexOf(a);
       const bIndex = stageOrder.indexOf(b);
@@ -233,6 +236,9 @@ export const WorkflowOverview = () => {
                     <div className="text-xs text-muted-foreground">
                       {item.service.name} • {item.order.weight} kg
                     </div>
+                    <div className="text-xs font-mono text-muted-foreground/80 mt-0.5">
+                      {item.order.id}
+                    </div>
                   </div>
 
                   {/* Stage Columns */}
@@ -270,13 +276,11 @@ export const WorkflowOverview = () => {
                         );
                       }
 
-                      // Show colored block for completed or current stage
+                      // Show colored block for completed or current stage - use single color
                       return (
                         <div
                           key={stage}
-                          className={`flex-1 h-10 rounded border-2 flex items-center justify-center transition-all ${
-                            getStageColor(stage)
-                          } ${getStageBorderColor(stage)} ${
+                          className={`flex-1 h-10 rounded border-2 flex items-center justify-center transition-all bg-primary border-primary ${
                             isActive ? 'ring-2 ring-primary ring-offset-1 scale-105' : ''
                           }`}
                           style={{ minWidth: stageColumnWidth }}
@@ -305,13 +309,15 @@ export const WorkflowOverview = () => {
         <div className="mt-6 pt-4 border-t">
           <div className="text-sm font-semibold mb-2">Legend</div>
           <div className="flex flex-wrap gap-4">
-            {allStages.map((stage) => (
-              <div key={stage} className="flex items-center gap-2">
-                <div className={`w-4 h-4 rounded ${getStageColor(stage)} ${getStageBorderColor(stage)} border-2`} />
-                <span className="text-xs">{getStageLabel(stage)}</span>
-              </div>
-            ))}
-            <div className="flex items-center gap-2 ml-4">
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded bg-primary border-2 border-primary" />
+              <span className="text-xs">Completed / In Progress</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded bg-gray-200 border-2 border-gray-300" />
+              <span className="text-xs text-muted-foreground">Not Started</span>
+            </div>
+            <div className="flex items-center gap-2">
               <div className="w-4 h-4 rounded bg-gray-100 border-2 border-gray-200 border-dashed" />
               <span className="text-xs text-muted-foreground">Not in workflow</span>
             </div>

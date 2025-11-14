@@ -7,6 +7,7 @@ export type WorkflowStage =
   | 'washing' 
   | 'drying' 
   | 'ironing' 
+  | 'packing'
   | 'qc' 
   | 'ready' 
   | 'picked';
@@ -24,104 +25,110 @@ export interface ServiceWorkflowConfig {
 export const SERVICE_WORKFLOWS: Record<Service['type'], ServiceWorkflowConfig> = {
   'regular': {
     serviceType: 'regular',
-    stages: ['reception', 'sorting', 'washing', 'drying', 'ready', 'picked'],
+    stages: ['reception', 'sorting', 'washing', 'drying', 'packing', 'ready', 'picked'],
     stageDurations: {
       reception: 5,
       sorting: 10,
       washing: 60,
       drying: 45,
       ironing: 0, // Not used
+      packing: 15,
       qc: 0, // Not used
       ready: 0,
       picked: 0,
     },
-    requiredStages: ['reception', 'sorting', 'washing', 'drying', 'ready'],
+    requiredStages: ['reception', 'sorting', 'washing', 'drying', 'packing', 'ready'],
     optionalStages: [],
   },
   
   'wash_iron': {
     serviceType: 'wash_iron',
-    stages: ['reception', 'sorting', 'washing', 'drying', 'ironing', 'qc', 'ready', 'picked'],
+    stages: ['reception', 'sorting', 'washing', 'drying', 'ironing', 'packing', 'ready', 'picked'],
     stageDurations: {
       reception: 5,
       sorting: 10,
       washing: 60,
       drying: 45,
       ironing: 30,
-      qc: 15,
+      packing: 15,
+      qc: 0,
       ready: 0,
       picked: 0,
     },
-    requiredStages: ['reception', 'sorting', 'washing', 'drying', 'ironing', 'qc', 'ready'],
+    requiredStages: ['reception', 'sorting', 'washing', 'drying', 'ironing', 'packing', 'ready'],
     optionalStages: [],
   },
   
   'iron_only': {
     serviceType: 'iron_only',
-    stages: ['reception', 'sorting', 'ironing', 'qc', 'ready', 'picked'],
+    stages: ['reception', 'sorting', 'ironing', 'packing', 'ready', 'picked'],
     stageDurations: {
       reception: 5,
       sorting: 10,
       washing: 0, // Not used
       drying: 0, // Not used
       ironing: 30,
-      qc: 15,
+      packing: 15,
+      qc: 0,
       ready: 0,
       picked: 0,
     },
-    requiredStages: ['reception', 'sorting', 'ironing', 'qc', 'ready'],
+    requiredStages: ['reception', 'sorting', 'ironing', 'packing', 'ready'],
     optionalStages: [],
   },
   
   'express': {
     serviceType: 'express',
-    stages: ['reception', 'sorting', 'washing', 'drying', 'ready', 'picked'],
+    stages: ['reception', 'sorting', 'washing', 'drying', 'packing', 'ready', 'picked'],
     stageDurations: {
       reception: 3, // Faster
       sorting: 5, // Faster
       washing: 40, // Faster (50% reduction)
       drying: 30, // Faster
       ironing: 0,
+      packing: 10, // Faster
       qc: 0,
       ready: 0,
       picked: 0,
     },
-    requiredStages: ['reception', 'sorting', 'washing', 'drying', 'ready'],
+    requiredStages: ['reception', 'sorting', 'washing', 'drying', 'packing', 'ready'],
     optionalStages: [],
   },
   
   'dry_clean': {
     serviceType: 'dry_clean',
-    stages: ['reception', 'sorting', 'washing', 'drying', 'qc', 'ready', 'picked'],
+    stages: ['reception', 'sorting', 'washing', 'drying', 'packing', 'ready', 'picked'],
     stageDurations: {
       reception: 5,
       sorting: 15, // More careful sorting
       washing: 90, // Longer for dry clean
       drying: 60, // Longer
       ironing: 0,
-      qc: 20, // More thorough QC
+      packing: 20,
+      qc: 0,
       ready: 0,
       picked: 0,
     },
-    requiredStages: ['reception', 'sorting', 'washing', 'drying', 'qc', 'ready'],
+    requiredStages: ['reception', 'sorting', 'washing', 'drying', 'packing', 'ready'],
     optionalStages: [],
   },
   
   'custom': {
     serviceType: 'custom',
-    stages: ['reception', 'sorting', 'washing', 'drying', 'ironing', 'qc', 'ready', 'picked'],
+    stages: ['reception', 'sorting', 'washing', 'drying', 'ironing', 'packing', 'ready', 'picked'],
     stageDurations: {
       reception: 5,
       sorting: 10,
       washing: 60,
       drying: 45,
       ironing: 30,
-      qc: 15,
+      packing: 15,
+      qc: 0,
       ready: 0,
       picked: 0,
     },
     requiredStages: ['reception', 'sorting', 'ready'], // Minimum required
-    optionalStages: ['washing', 'drying', 'ironing', 'qc'], // Can be configured
+    optionalStages: ['washing', 'drying', 'ironing', 'packing'], // Can be configured
   },
 };
 

@@ -33,6 +33,8 @@ export interface Order {
   currentStage?: WorkflowStage;
   completedStages?: WorkflowStage[];
   estimatedCompletion?: string;
+  // RFID tracking
+  rfidTagId?: string;
 }
 
 export interface Customer {
@@ -238,8 +240,6 @@ export interface OwnerDashboard {
     time: string;
   }[];
 }
-
-import type { WorkflowStage } from './workflow';
 
 export interface LaundryItem {
   id: string;
