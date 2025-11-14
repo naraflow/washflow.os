@@ -1,9 +1,49 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Sparkles, Users, TrendingUp, Shield, Zap, Clock } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Sparkles, Users, TrendingUp, Shield, Zap, Clock, Menu, X } from "lucide-react";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
 
 const Home = () => {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [trialModalOpen, setTrialModalOpen] = useState(false);
+  const [demoModalOpen, setDemoModalOpen] = useState(false);
+  
+  const [trialForm, setTrialForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    businessName: ""
+  });
+
+  const [demoForm, setDemoForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    businessName: "",
+    date: "",
+    time: ""
+  });
+
+  const handleTrialSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    toast.success("Terima kasih! Kami akan menghubungi Anda segera untuk memulai trial gratis 30 hari.");
+    setTrialModalOpen(false);
+    setTrialForm({ name: "", email: "", phone: "", businessName: "" });
+  };
+
+  const handleDemoSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    toast.success("Demo berhasil dijadwalkan! Kami akan menghubungi Anda sesuai waktu yang dipilih.");
+    setDemoModalOpen(false);
+    setDemoForm({ name: "", email: "", phone: "", businessName: "", date: "", time: "" });
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -13,6 +53,8 @@ const Home = () => {
             <Sparkles className="h-6 w-6 text-primary" />
             <span className="text-xl font-bold text-primary">SmartLink</span>
           </div>
+          
+          {/* Desktop Menu */}
           <div className="hidden md:flex items-center gap-8">
             <a href="#features" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
               Fitur
@@ -24,17 +66,95 @@ const Home = () => {
               Biaya
             </a>
           </div>
-          <div className="flex items-center gap-3">
+
+          {/* Desktop CTA */}
+          <div className="hidden md:flex items-center gap-3">
             <Link to="/dashboard">
               <Button variant="ghost" size="sm">
                 Dashboard
               </Button>
             </Link>
-            <Button size="sm" className="bg-primary hover:bg-primary-hover">
+            <Button 
+              size="sm" 
+              variant="outline"
+              onClick={() => setDemoModalOpen(true)}
+            >
+              Demo
+            </Button>
+            <Button 
+              size="sm" 
+              className="bg-primary hover:bg-primary-hover"
+              onClick={() => setTrialModalOpen(true)}
+            >
               Coba Gratis
             </Button>
           </div>
+
+          {/* Mobile Menu Button */}
+          <button 
+            className="md:hidden p-2"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          >
+            {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          </button>
         </nav>
+
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t bg-background">
+            <div className="container py-4 space-y-4">
+              <a 
+                href="#features" 
+                className="block text-sm font-medium text-foreground hover:text-primary transition-colors"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Fitur
+              </a>
+              <a 
+                href="#benefits" 
+                className="block text-sm font-medium text-foreground hover:text-primary transition-colors"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Keuntungan
+              </a>
+              <a 
+                href="#pricing" 
+                className="block text-sm font-medium text-foreground hover:text-primary transition-colors"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Biaya
+              </a>
+              <div className="flex flex-col gap-2 pt-2">
+                <Link to="/dashboard">
+                  <Button variant="ghost" size="sm" className="w-full">
+                    Dashboard
+                  </Button>
+                </Link>
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => {
+                    setDemoModalOpen(true);
+                    setMobileMenuOpen(false);
+                  }}
+                >
+                  Demo
+                </Button>
+                <Button 
+                  size="sm" 
+                  className="w-full bg-primary hover:bg-primary-hover"
+                  onClick={() => {
+                    setTrialModalOpen(true);
+                    setMobileMenuOpen(false);
+                  }}
+                >
+                  Coba Gratis
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </header>
 
       {/* Hero Section */}
@@ -50,10 +170,19 @@ const Home = () => {
               Cara cerdas mengelola usaha laundry dengan model bisnis baru masa depan.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="bg-white text-primary hover:bg-white/90 font-semibold">
+              <Button 
+                size="lg" 
+                className="bg-white text-primary hover:bg-white/90 font-semibold"
+                onClick={() => setTrialModalOpen(true)}
+              >
                 Coba Gratis 30 Hari
               </Button>
-              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-primary">
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="border-white text-white hover:bg-white hover:text-primary"
+                onClick={() => setDemoModalOpen(true)}
+              >
                 Ajukan Demo
               </Button>
             </div>
@@ -189,7 +318,11 @@ const Home = () => {
             <p className="text-lg text-white/90 mb-8">
               Bergabung dengan ratusan pemilik laundry yang telah merasakan manfaatnya
             </p>
-            <Button size="lg" className="bg-white text-primary hover:bg-white/90 font-semibold">
+            <Button 
+              size="lg" 
+              className="bg-white text-primary hover:bg-white/90 font-semibold"
+              onClick={() => setTrialModalOpen(true)}
+            >
               Mulai Gratis Sekarang
             </Button>
           </div>
@@ -238,6 +371,147 @@ const Home = () => {
           </div>
         </div>
       </footer>
+
+      {/* Trial Modal */}
+      <Dialog open={trialModalOpen} onOpenChange={setTrialModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Coba Gratis 30 Hari</DialogTitle>
+            <DialogDescription>
+              Isi formulir di bawah ini untuk memulai trial gratis 30 hari tanpa perlu kartu kredit
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleTrialSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="trial-name">Nama Lengkap *</Label>
+              <Input
+                id="trial-name"
+                required
+                value={trialForm.name}
+                onChange={(e) => setTrialForm({ ...trialForm, name: e.target.value })}
+                placeholder="John Doe"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="trial-email">Email *</Label>
+              <Input
+                id="trial-email"
+                type="email"
+                required
+                value={trialForm.email}
+                onChange={(e) => setTrialForm({ ...trialForm, email: e.target.value })}
+                placeholder="john@example.com"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="trial-phone">Nomor Telepon *</Label>
+              <Input
+                id="trial-phone"
+                type="tel"
+                required
+                value={trialForm.phone}
+                onChange={(e) => setTrialForm({ ...trialForm, phone: e.target.value })}
+                placeholder="081234567890"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="trial-business">Nama Usaha *</Label>
+              <Input
+                id="trial-business"
+                required
+                value={trialForm.businessName}
+                onChange={(e) => setTrialForm({ ...trialForm, businessName: e.target.value })}
+                placeholder="Laundry ABC"
+              />
+            </div>
+            <Button type="submit" className="w-full">
+              Mulai Trial Gratis
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Demo Modal */}
+      <Dialog open={demoModalOpen} onOpenChange={setDemoModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Ajukan Demo</DialogTitle>
+            <DialogDescription>
+              Jadwalkan demo dengan tim kami untuk melihat bagaimana SmartLink dapat membantu bisnis Anda
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleDemoSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="demo-name">Nama Lengkap *</Label>
+              <Input
+                id="demo-name"
+                required
+                value={demoForm.name}
+                onChange={(e) => setDemoForm({ ...demoForm, name: e.target.value })}
+                placeholder="John Doe"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="demo-email">Email *</Label>
+              <Input
+                id="demo-email"
+                type="email"
+                required
+                value={demoForm.email}
+                onChange={(e) => setDemoForm({ ...demoForm, email: e.target.value })}
+                placeholder="john@example.com"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="demo-phone">Nomor Telepon *</Label>
+              <Input
+                id="demo-phone"
+                type="tel"
+                required
+                value={demoForm.phone}
+                onChange={(e) => setDemoForm({ ...demoForm, phone: e.target.value })}
+                placeholder="081234567890"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="demo-business">Nama Usaha *</Label>
+              <Input
+                id="demo-business"
+                required
+                value={demoForm.businessName}
+                onChange={(e) => setDemoForm({ ...demoForm, businessName: e.target.value })}
+                placeholder="Laundry ABC"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="demo-date">Tanggal *</Label>
+                <Input
+                  id="demo-date"
+                  type="date"
+                  required
+                  min={new Date().toISOString().split('T')[0]}
+                  value={demoForm.date}
+                  onChange={(e) => setDemoForm({ ...demoForm, date: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="demo-time">Waktu *</Label>
+                <Input
+                  id="demo-time"
+                  type="time"
+                  required
+                  value={demoForm.time}
+                  onChange={(e) => setDemoForm({ ...demoForm, time: e.target.value })}
+                />
+              </div>
+            </div>
+            <Button type="submit" className="w-full">
+              Jadwalkan Demo
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
