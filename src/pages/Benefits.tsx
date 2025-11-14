@@ -1,4 +1,4 @@
-import { Sparkles } from "lucide-react";
+import { WashflowLogo } from "@/components/WashflowLogo";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
@@ -9,7 +9,7 @@ const Benefits = () => {
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <nav className="container flex h-16 items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <Sparkles className="h-6 w-6 text-primary" />
+            <WashflowLogo size={28} />
             <span className="text-xl font-bold text-primary">washflow.os</span>
           </Link>
           
@@ -96,7 +96,7 @@ const Benefits = () => {
           <div className="grid gap-8 md:grid-cols-4">
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <Sparkles className="h-5 w-5 text-primary" />
+                <WashflowLogo size={20} />
                 <span className="font-bold text-primary">washflow.os</span>
               </div>
               <p className="text-sm text-muted-foreground">

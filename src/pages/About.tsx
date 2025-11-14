@@ -1,4 +1,5 @@
-import { Sparkles, CheckCircle2, Zap, BarChart3, Package, Smartphone, Eye, TrendingUp } from "lucide-react";
+import { CheckCircle2, Zap, BarChart3, Package, Smartphone, Eye, TrendingUp } from "lucide-react";
+import { WashflowLogo } from "@/components/WashflowLogo";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -10,7 +11,7 @@ const About = () => {
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <nav className="container flex h-16 items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <Sparkles className="h-6 w-6 text-primary" />
+            <WashflowLogo size={28} />
             <span className="text-xl font-bold text-primary">washflow.os</span>
           </Link>
           
@@ -159,7 +160,7 @@ const About = () => {
               <Card className="p-6">
                 <div className="flex gap-4">
                   <div className="flex-shrink-0">
-                    <Sparkles className="h-8 w-8 text-primary" />
+                    <WashflowLogo size={32} />
                   </div>
                   <div>
                     <h3 className="text-xl font-semibold mb-2">Modular & Bisa Dipakai Seketika</h3>
@@ -297,7 +298,7 @@ const About = () => {
           <div className="grid gap-8 md:grid-cols-4">
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <Sparkles className="h-5 w-5 text-primary" />
+                <WashflowLogo size={20} />
                 <span className="font-bold text-primary">washflow.os</span>
               </div>
               <p className="text-sm text-muted-foreground">

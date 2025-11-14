@@ -5,7 +5,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Sparkles, Users, TrendingUp, Shield, Zap, Clock, Menu, X } from "lucide-react";
+import { Users, TrendingUp, Shield, Zap, Clock, Menu, X } from "lucide-react";
+import { WashflowLogo } from "@/components/WashflowLogo";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -50,7 +51,7 @@ const Home = () => {
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <nav className="container flex h-16 items-center justify-between">
           <div className="flex items-center gap-2">
-            <Sparkles className="h-6 w-6 text-primary" />
+            <WashflowLogo size={28} />
             <span className="text-xl font-bold text-primary">washflow.os</span>
           </div>
           
@@ -216,7 +217,7 @@ const Home = () => {
           <div className="grid gap-8 md:grid-cols-4">
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <Sparkles className="h-5 w-5 text-primary" />
+                <WashflowLogo size={20} />
                 <span className="font-bold text-primary">washflow.os</span>
               </div>
               <p className="text-sm text-muted-foreground">
