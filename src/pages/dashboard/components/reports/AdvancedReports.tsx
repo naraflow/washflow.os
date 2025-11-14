@@ -157,7 +157,7 @@ export const AdvancedReports = () => {
         <div className="flex flex-col sm:flex-row gap-4 items-end">
           <div className="flex-1">
             <label className="text-sm font-medium mb-2 block">Periode Laporan</label>
-            <Select value={reportPeriod} onValueChange={(v) => setReportPeriod(v as any)}>
+            <Select value={reportPeriod} onValueChange={(v) => setReportPeriod(v as "today" | "week" | "month" | "custom")}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>

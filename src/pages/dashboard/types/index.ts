@@ -52,6 +52,81 @@ export interface Service {
   createdAt: string;
 }
 
+export interface OutletAddress {
+  fullAddress: string;
+  province: string;
+  city: string;
+  district: string;
+  postalCode?: string;
+  phone: string;
+  whatsapp: string;
+  coordinates?: string;
+}
+
+export interface OutletServicePricing {
+  price_regular?: number;
+  price_dryclean?: number;
+  price_iron?: number;
+  price_express?: number;
+}
+
+export interface OutletOperatingHours {
+  weekday_open?: string;
+  weekday_close?: string;
+  weekend_open?: string;
+  weekend_close?: string;
+}
+
+export interface OutletManager {
+  name?: string;
+  phone?: string;
+  email?: string;
+}
+
+export interface OutletStaffMember {
+  id: string;
+  name: string;
+  role: string;
+}
+
+export interface OutletMachine {
+  id: string;
+  type: string;
+  serialNumber: string;
+  capacity?: number;
+  iotEnabled: boolean;
+}
+
+export interface OutletIoTSettings {
+  auto_start: boolean;
+  remote_control: boolean;
+  usage_tracking: boolean;
+  maintenance_alert: boolean;
+}
+
+export interface Outlet {
+  id: string;
+  name: string;
+  code: string;
+  type: 'regular' | 'premium' | 'express' | 'self-service';
+  ownerId: string;
+  activationDate: string;
+  status: 'active' | 'inactive' | 'maintenance';
+  description?: string;
+  address: OutletAddress;
+  servicesOffered: string[];
+  pricing: OutletServicePricing;
+  operatingHours: OutletOperatingHours;
+  manager: OutletManager;
+  employees: OutletStaffMember[];
+  machines: OutletMachine[];
+  iotSettings: OutletIoTSettings;
+  createdAt: string;
+  lastUpdated: string;
+}
+
+export type OutletFormState = Omit<Outlet, 'id' | 'createdAt' | 'lastUpdated'>;
+
 export interface PickupDelivery {
   id: string;
   type: 'pickup' | 'delivery';

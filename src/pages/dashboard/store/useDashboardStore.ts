@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Order, Customer, Service, PickupDelivery, Machine, User, Staff, Attendance, LaundryItem, QualityControl } from '../types';
+import type { Order, Customer, Service, PickupDelivery, Machine, User, Staff, Attendance, LaundryItem, QualityControl, Outlet } from '../types';
 
 interface DashboardStore {
   // Orders
@@ -24,6 +24,12 @@ interface DashboardStore {
   updateService: (id: string, service: Partial<Service>) => void;
   deleteService: (id: string) => void;
   getService: (id: string) => Service | undefined;
+  
+  // Outlets
+  outlets: Outlet[];
+  addOutlet: (outlet: Outlet) => void;
+  updateOutlet: (id: string, outlet: Partial<Outlet>) => void;
+  deleteOutlet: (id: string) => void;
   
   // Pickup & Delivery
   pickupsDeliveries: PickupDelivery[];
@@ -126,6 +132,7 @@ export const useDashboardStore = create<DashboardStore>()(
       orders: [],
       customers: [],
       services: defaultServices,
+      outlets: [],
       pickupsDeliveries: [],
       machines: [],
       users: [],
@@ -185,6 +192,22 @@ export const useDashboardStore = create<DashboardStore>()(
           })
         })),
       getService: (id) => get().services.find((s) => s.id === id),
+      
+      // Outlets
+      addOutlet: (outlet) =>
+        set((state) => ({
+          outlets: [...state.outlets, outlet],
+        })),
+      updateOutlet: (id, updates) =>
+        set((state) => ({
+          outlets: state.outlets.map((outlet) =>
+            outlet.id === id ? { ...outlet, ...updates, lastUpdated: new Date().toISOString() } : outlet
+          ),
+        })),
+      deleteOutlet: (id) =>
+        set((state) => ({
+          outlets: state.outlets.filter((outlet) => outlet.id !== id),
+        })),
       
       // Pickup & Delivery
       addPickupDelivery: (pd) => set((state) => ({ pickupsDeliveries: [...state.pickupsDeliveries, pd] })),

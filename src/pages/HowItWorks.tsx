@@ -1,4 +1,4 @@
-import { ShoppingCart, Tag, Settings, CheckCircle, CreditCard, Truck, BarChart3, ArrowRight } from "lucide-react";
+import { ShoppingCart, Tag, Settings, CheckCircle2, CreditCard, Truck, BarChart3, ArrowRight, ClipboardList } from "lucide-react";
 import { WashflowLogo } from "@/components/WashflowLogo";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -8,52 +8,52 @@ const HowItWorks = () => {
   const steps = [
     {
       number: 1,
-      icon: ShoppingCart,
+      icon: ClipboardList,
       title: "Terima Order",
-      description: "Kasir memasukkan nama pelanggan, nomor telepon, layanan, berat/qty, dan metode pembayaran. Sistem otomatis menghitung harga, diskon, surcharge, dan total.",
-      outputs: ["Order ID", "Subtotal dan rincian layanan", "QR code / tag cucian (opsional)"]
+      subtitle: "Catat data pelanggan dan layanan dengan cepat menggunakan form sederhana.",
+      description: "Pelanggan datang atau pickup dijadwalkan. Data pelanggan dan layanan dicatat."
     },
     {
       number: 2,
       icon: Tag,
-      title: "Tag & Identifikasi Cucian",
-      description: "Setiap cucian diberi tag kertas, QR code, dan label pelayanan (regular, express, setrika saja). Tujuannya menghindari cucian tertukar.",
-      outputs: []
+      title: "Tag dan Identifikasi Cucian",
+      subtitle: "Gunakan QR atau tag fisik untuk memastikan cucian tidak tertukar.",
+      description: "Setiap cucian diberi label atau QR agar tidak tertukar."
     },
     {
       number: 3,
       icon: Settings,
       title: "Proses di Mesin",
-      description: "Operator melihat dashboard mesin (kosong, sedang digunakan, selesai). Operator menekan 'Start Machine' atau 'Complete Cycle'. Sistem mencatat order yang diproses dan memberi timer otomatis.",
-      outputs: []
+      subtitle: "Pantau status mesin. Otomatisasi alur cuci, kering, dan setrika.",
+      description: "Cucian diproses dalam tahap washing, drying, dan ironing."
     },
     {
       number: 4,
-      icon: CheckCircle,
+      icon: CheckCircle2,
       title: "Quality Check (QC)",
-      description: "Setelah proses selesai, operator mengecek setiap item, menandai 'QC OK', dan mencatat catatan tambahan bila perlu. Status berubah menjadi Ready for Pickup.",
-      outputs: []
+      subtitle: "Pastikan hasil akhir bersih, rapi, dan sesuai standar laundry.",
+      description: "Operator memastikan hasil bersih, rapi, dan sesuai standar."
     },
     {
       number: 5,
       icon: CreditCard,
-      title: "Pembayaran & Notifikasi",
-      description: "Jika pelanggan belum membayar, sistem menampilkan QRIS / transfer / cash. Sistem bisa mengirim notifikasi WhatsApp otomatis: order masuk, cucian selesai, pengantaran sedang menuju.",
-      outputs: []
+      title: "Pembayaran dan Konfirmasi",
+      subtitle: "Bayar melalui QRIS, transfer, atau tunai. Sistem mengirim notifikasi otomatis.",
+      description: "Pembayaran melalui QRIS, tunai, atau transfer dengan notifikasi otomatis."
     },
     {
       number: 6,
       icon: Truck,
       title: "Pengambilan atau Pengantaran",
-      description: "Kasir atau kurir menyelesaikan transaksi. Untuk Pickup: kurir klik 'OTW' dan 'Selesai Pickup'. Untuk Delivery: alamat pelanggan tersimpan, status diperbarui real-time, pelanggan mendapat notifikasi.",
-      outputs: []
+      subtitle: "Kurir update status real time. Pelanggan mendapat info barang sampai.",
+      description: "Pelanggan mengambil pesanan atau kurir mengantarkan ke alamat."
     },
     {
       number: 7,
       icon: BarChart3,
-      title: "Dashboard Owner & Laporan Otomatis",
-      description: "Owner mendapat laporan: pendapatan harian, order per jam, layanan terlaris, performa kurir, revenue per outlet, margin & biaya operasional, perbandingan outlet. Semua bisa diakses dari HP.",
-      outputs: []
+      title: "Dashboard dan Laporan Real Time",
+      subtitle: "Lihat kinerja outlet, pendapatan, aktivitas staff, dan laporan otomatis.",
+      description: "Owner memantau performa outlet, staff, dan pendapatan harian."
     }
   ];
 
@@ -96,8 +96,152 @@ const HowItWorks = () => {
         </div>
       </section>
 
-      {/* Steps Section */}
-      <section className="py-20">
+      {/* Visual Flow Diagram - Grid 3x3 */}
+      <section className="py-20 bg-white">
+        <div className="container">
+          <div className="mx-auto max-w-6xl">
+            {/* Subtitle */}
+            <div className="text-center mb-4">
+              <p className="text-lg text-muted-foreground">
+                Inilah alur kerja lengkap yang menghubungkan seluruh proses laundry dari awal hingga akhir.
+              </p>
+            </div>
+            
+            <h2 className="text-3xl font-bold mb-12 text-center">Alur Kerja Laundry yang Lebih Jelas dan Lancar</h2>
+            
+            {/* Grid Layout 3x3 */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+              {/* Row 1 */}
+              <Card className="p-6 text-center shadow-sm hover:shadow-md transition-shadow">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                  <span className="text-xl font-bold text-primary">{steps[0].number}</span>
+                </div>
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                  {(() => {
+                    const IconComponent = steps[0].icon;
+                    return <IconComponent className="h-6 w-6 text-primary" />;
+                  })()}
+                </div>
+                <h3 className="font-semibold mb-2">{steps[0].title}</h3>
+                <p className="text-sm text-muted-foreground">{steps[0].subtitle}</p>
+              </Card>
+              
+              <div className="flex items-center justify-center">
+                <ArrowRight className="h-8 w-8 text-primary/50 hidden md:block" />
+                <div className="md:hidden w-full h-px bg-primary/20 my-4"></div>
+              </div>
+              
+              <Card className="p-6 text-center shadow-sm hover:shadow-md transition-shadow">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                  <span className="text-xl font-bold text-primary">{steps[1].number}</span>
+                </div>
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                  {(() => {
+                    const IconComponent = steps[1].icon;
+                    return <IconComponent className="h-6 w-6 text-primary" />;
+                  })()}
+                </div>
+                <h3 className="font-semibold mb-2">{steps[1].title}</h3>
+                <p className="text-sm text-muted-foreground">{steps[1].subtitle}</p>
+              </Card>
+              
+              <div className="flex items-center justify-center">
+                <ArrowRight className="h-8 w-8 text-primary/50 hidden md:block" />
+                <div className="md:hidden w-full h-px bg-primary/20 my-4"></div>
+              </div>
+              
+              <Card className="p-6 text-center shadow-sm hover:shadow-md transition-shadow">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                  <span className="text-xl font-bold text-primary">{steps[2].number}</span>
+                </div>
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                  {(() => {
+                    const IconComponent = steps[2].icon;
+                    return <IconComponent className="h-6 w-6 text-primary" />;
+                  })()}
+                </div>
+                <h3 className="font-semibold mb-2">{steps[2].title}</h3>
+                <p className="text-sm text-muted-foreground">{steps[2].subtitle}</p>
+              </Card>
+            </div>
+
+            {/* Row 2 */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+              <Card className="p-6 text-center shadow-sm hover:shadow-md transition-shadow">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                  <span className="text-xl font-bold text-primary">{steps[3].number}</span>
+                </div>
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                  {(() => {
+                    const IconComponent = steps[3].icon;
+                    return <IconComponent className="h-6 w-6 text-primary" />;
+                  })()}
+                </div>
+                <h3 className="font-semibold mb-2">{steps[3].title}</h3>
+                <p className="text-sm text-muted-foreground">{steps[3].subtitle}</p>
+              </Card>
+              
+              <div className="flex items-center justify-center">
+                <ArrowRight className="h-8 w-8 text-primary/50 hidden md:block" />
+                <div className="md:hidden w-full h-px bg-primary/20 my-4"></div>
+              </div>
+              
+              <Card className="p-6 text-center shadow-sm hover:shadow-md transition-shadow">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                  <span className="text-xl font-bold text-primary">{steps[4].number}</span>
+                </div>
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                  {(() => {
+                    const IconComponent = steps[4].icon;
+                    return <IconComponent className="h-6 w-6 text-primary" />;
+                  })()}
+                </div>
+                <h3 className="font-semibold mb-2">{steps[4].title}</h3>
+                <p className="text-sm text-muted-foreground">{steps[4].subtitle}</p>
+              </Card>
+              
+              <div className="flex items-center justify-center">
+                <ArrowRight className="h-8 w-8 text-primary/50 hidden md:block" />
+                <div className="md:hidden w-full h-px bg-primary/20 my-4"></div>
+              </div>
+              
+              <Card className="p-6 text-center shadow-sm hover:shadow-md transition-shadow">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                  <span className="text-xl font-bold text-primary">{steps[5].number}</span>
+                </div>
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                  {(() => {
+                    const IconComponent = steps[5].icon;
+                    return <IconComponent className="h-6 w-6 text-primary" />;
+                  })()}
+                </div>
+                <h3 className="font-semibold mb-2">{steps[5].title}</h3>
+                <p className="text-sm text-muted-foreground">{steps[5].subtitle}</p>
+              </Card>
+            </div>
+
+            {/* Row 3 - Dashboard centered */}
+            <div className="flex justify-center">
+              <Card className="p-6 text-center shadow-sm hover:shadow-md transition-shadow max-w-md">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                  <span className="text-xl font-bold text-primary">{steps[6].number}</span>
+                </div>
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                  {(() => {
+                    const IconComponent = steps[6].icon;
+                    return <IconComponent className="h-6 w-6 text-primary" />;
+                  })()}
+                </div>
+                <h3 className="font-semibold mb-2">{steps[6].title}</h3>
+                <p className="text-sm text-muted-foreground">{steps[6].subtitle}</p>
+              </Card>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Detailed Steps Section */}
+      <section className="py-20 bg-secondary/30">
         <div className="container">
           <div className="mx-auto max-w-5xl">
             <div className="space-y-12">
@@ -107,10 +251,10 @@ const HowItWorks = () => {
                   <div key={step.number} className="relative">
                     {/* Connector Line */}
                     {index < steps.length - 1 && (
-                      <div className="absolute left-8 top-20 w-0.5 h-12 bg-primary/20" />
+                      <div className="absolute left-8 top-20 w-0.5 h-12 bg-primary/20 hidden md:block" />
                     )}
                     
-                    <Card className="p-6 md:p-8 hover:shadow-lg transition-shadow">
+                    <Card className="p-6 md:p-8 hover:shadow-lg transition-shadow shadow-sm">
                       <div className="flex gap-6">
                         {/* Step Number & Icon */}
                         <div className="flex-shrink-0">
@@ -124,24 +268,13 @@ const HowItWorks = () => {
                         
                         {/* Content */}
                         <div className="flex-1">
-                          <h3 className="text-2xl font-bold mb-3">{step.title}</h3>
-                          <p className="text-muted-foreground mb-4 leading-relaxed">
+                          <h3 className="text-2xl font-bold mb-2">{step.title}</h3>
+                          <p className="text-muted-foreground mb-3 leading-relaxed font-medium">
+                            {step.subtitle}
+                          </p>
+                          <p className="text-muted-foreground leading-relaxed">
                             {step.description}
                           </p>
-                          
-                          {step.outputs.length > 0 && (
-                            <div className="mt-4 p-4 bg-secondary/50 rounded-lg">
-                              <p className="font-semibold mb-2 text-sm">Output:</p>
-                              <ul className="space-y-1">
-                                {step.outputs.map((output, idx) => (
-                                  <li key={idx} className="text-sm text-muted-foreground flex items-center gap-2">
-                                    <ArrowRight className="h-4 w-4 text-primary" />
-                                    {output}
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
                         </div>
                       </div>
                     </Card>
@@ -153,33 +286,20 @@ const HowItWorks = () => {
         </div>
       </section>
 
-      {/* Visual Flow Diagram */}
-      <section className="py-20 bg-secondary/30">
+      {/* CTA After Diagram */}
+      <section className="py-12 bg-white">
         <div className="container">
-          <div className="mx-auto max-w-4xl">
-            <h2 className="text-3xl font-bold mb-8 text-center">Alur Kerja Ringkas</h2>
-            <div className="flex flex-wrap justify-center gap-4 items-center">
-              {steps.slice(0, 6).map((step, index) => {
-                const Icon = step.icon;
-                return (
-                  <div key={step.number} className="flex items-center gap-4">
-                    <Card className="p-4 w-32 text-center">
-                      <Icon className="h-8 w-8 text-primary mx-auto mb-2" />
-                      <p className="text-xs font-semibold">{step.title}</p>
-                    </Card>
-                    {index < 5 && (
-                      <ArrowRight className="h-6 w-6 text-primary/50" />
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-            <div className="mt-8 text-center">
-              <Card className="p-4 inline-block">
-                <BarChart3 className="h-8 w-8 text-primary mx-auto mb-2" />
-                <p className="text-sm font-semibold">Dashboard & Laporan</p>
-              </Card>
-            </div>
+          <div className="mx-auto max-w-2xl text-center">
+            <Link to="/dashboard">
+              <Button 
+                variant="outline" 
+                size="lg"
+                className="text-primary border-primary hover:bg-primary hover:text-white"
+              >
+                Lihat demo cara kerja WashFlow OS
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
@@ -220,7 +340,7 @@ const HowItWorks = () => {
                 <span className="font-bold text-primary">washflow.os</span>
               </div>
               <p className="text-sm text-muted-foreground">
-                Revolusi bisnis laundry melalui ekosistem digital
+                Easy for Staff. Powerful for Owners.
               </p>
             </div>
             <div>
@@ -249,7 +369,7 @@ const HowItWorks = () => {
           </div>
           <div className="mt-12 pt-8 border-t text-center text-sm text-muted-foreground">
             © 2024 washflow.os. All rights reserved.
-          </div>
+            </div>
         </div>
       </footer>
     </div>
@@ -257,4 +377,3 @@ const HowItWorks = () => {
 };
 
 export default HowItWorks;
-
