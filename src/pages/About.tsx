@@ -1,4 +1,4 @@
-import { CheckCircle2, Zap, BarChart3, Package, Smartphone, Eye, TrendingUp } from "lucide-react";
+import { CheckCircle2, Zap, BarChart3, Smartphone, Eye, TrendingUp, Users, Clock, Shield, ArrowRight } from "lucide-react";
 import { WashflowLogo } from "@/components/WashflowLogo";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -23,269 +23,365 @@ const About = () => {
             </Link>
             <Link to="/dashboard">
               <Button variant="ghost" size="sm">
-                Dashboard
+                Demo
               </Button>
             </Link>
           </div>
         </nav>
       </header>
 
-      {/* Hero Statement */}
-      <section className="py-20 bg-gradient-to-br from-primary via-primary to-primary-hover">
-        <div className="container">
-          <div className="mx-auto max-w-4xl text-center">
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">
-              washflow.os Core
+      {/* A. Opening Statement */}
+      <section className="relative overflow-hidden py-24">
+        {/* Background Image - Modern Laundromat with Employee using Tablet */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{
+            backgroundImage: 'url("https://images.unsplash.com/photo-1558618666-fcd25c85cd64?q=80&w=2070")',
+            backgroundPosition: 'center',
+            backgroundSize: 'cover',
+          }}
+        />
+        
+        {/* Dark Overlay for Contrast */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/85 via-primary/80 to-primary-hover/85" />
+        
+        {/* Additional Dark Overlay for Better Text Readability */}
+        <div className="absolute inset-0 bg-black/40" />
+        
+        {/* Subtle gradient overlay for depth */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
+        
+        <div className="container relative z-10">
+          <div className="mx-auto max-w-3xl text-center">
+            <h1 className="text-5xl md:text-6xl font-bold text-white mb-6 tracking-tight drop-shadow-lg">
+              Solution for Modern Laundry
             </h1>
-            <p className="text-xl md:text-2xl text-white/90 leading-relaxed">
-              Membantu pemilik laundry mengelola operasional harian dengan lebih cepat, akurat, dan otomatis tanpa membutuhkan perangkat mahal atau pelatihan rumit.
+            <p className="text-2xl md:text-3xl text-white/95 mb-8 font-light drop-shadow-md">
+              Easy for Staff. Powerful for Owners.
             </p>
-          </div>
-        </div>
-      </section>
-
-      {/* Masalah Utama */}
-      <section className="py-20">
-        <div className="container">
-          <div className="mx-auto max-w-4xl">
-            <h2 className="text-3xl font-bold mb-6 text-center">Masalah Utama di Industri Laundry</h2>
-            <p className="text-lg text-muted-foreground mb-8 text-center">
-              Sebagian besar laundry masih berjalan secara manual, menggunakan WhatsApp, buku catatan, dan komunikasi yang tidak terstruktur. Akibatnya:
-            </p>
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="flex gap-3 p-4 bg-destructive/10 rounded-lg border border-destructive/20">
-                <span className="text-destructive font-bold">✗</span>
-                <p className="text-foreground">Order sering hilang atau tertukar</p>
-              </div>
-              <div className="flex gap-3 p-4 bg-destructive/10 rounded-lg border border-destructive/20">
-                <span className="text-destructive font-bold">✗</span>
-                <p className="text-foreground">Kesalahan input harga dan berat cucian</p>
-              </div>
-              <div className="flex gap-3 p-4 bg-destructive/10 rounded-lg border border-destructive/20">
-                <span className="text-destructive font-bold">✗</span>
-                <p className="text-foreground">Pelanggan tidak mendapatkan update yang jelas</p>
-              </div>
-              <div className="flex gap-3 p-4 bg-destructive/10 rounded-lg border border-destructive/20">
-                <span className="text-destructive font-bold">✗</span>
-                <p className="text-foreground">Pemilik sulit memantau outlet dan karyawan</p>
-              </div>
-              <div className="flex gap-3 p-4 bg-destructive/10 rounded-lg border border-destructive/20">
-                <span className="text-destructive font-bold">✗</span>
-                <p className="text-foreground">Tidak ada data untuk mengukur performa bisnis</p>
-              </div>
-              <div className="flex gap-3 p-4 bg-destructive/10 rounded-lg border border-destructive/20">
-                <span className="text-destructive font-bold">✗</span>
-                <p className="text-foreground">Sistem POS retail umum tidak cocok untuk alur laundry</p>
-              </div>
+            <div className="max-w-2xl mx-auto">
+              <p className="text-lg text-white/95 leading-relaxed drop-shadow-md">
+                WashFlow OS adalah solusi modern untuk operasional laundry masa kini. Sistem ini dibuat agar staff bekerja lebih mudah dan pemilik mendapatkan kontrol yang lebih kuat melalui proses yang jelas dan data real time.
+              </p>
             </div>
-            <p className="text-center mt-8 text-lg font-semibold text-primary">
-              Laundry butuh sistem yang sederhana, pintar, dan sesuai cara kerja laundry, bukan sekadar aplikasi kasir.
-            </p>
           </div>
         </div>
       </section>
 
-      {/* Solusi washflow.os */}
+      {/* B. What We Solve */}
       <section className="py-20 bg-secondary/30">
         <div className="container">
           <div className="mx-auto max-w-4xl">
-            <h2 className="text-3xl font-bold mb-6 text-center">Solusi yang Diberikan washflow.os</h2>
-            <p className="text-lg text-muted-foreground mb-8 text-center">
-              washflow.os Core dibangun khusus untuk laundry, bukan diturunkan dari POS retail. Sistem ini membantu Anda mengelola:
-            </p>
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {[
-                "Order per kg / per item",
-                "Tag cucian & QR code",
-                "Proses cuci → kering → setrika → QC",
-                "Pickup & delivery",
-                "Pengingat pelanggan otomatis",
-                "Pembayaran (cash, transfer, QRIS)",
-                "Mesin laundry (status, kapasitas, timer)",
-                "Multi-outlet & multi-user"
-              ].map((feature, index) => (
-                <Card key={index} className="p-4 flex items-center gap-3">
-                  <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0" />
-                  <p className="text-foreground">{feature}</p>
-                </Card>
-              ))}
-            </div>
-            <p className="text-center mt-8 text-lg text-muted-foreground">
-              Semua dirancang agar bisa dipakai dari HP, tablet, atau laptop.<br />
-              <span className="font-semibold text-primary">Tanpa hardware khusus. Tanpa biaya rumit.</span>
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* Kenapa Berbeda */}
-      <section className="py-20">
-        <div className="container">
-          <div className="mx-auto max-w-4xl">
-            <h2 className="text-3xl font-bold mb-8 text-center">Kenapa Berbeda dari Aplikasi Laundry Lain</h2>
+            <h2 className="text-3xl font-bold mb-12 text-center">Masalah yang Diselesaikan</h2>
             <div className="space-y-6">
-              <Card className="p-6">
-                <div className="flex gap-4">
-                  <div className="flex-shrink-0">
-                    <Zap className="h-8 w-8 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-semibold mb-2">Native Laundry Workflow</h3>
-                    <p className="text-muted-foreground">Dibangun mengikuti alur kerja laundry sungguhan.</p>
-                  </div>
-                </div>
+              <Card className="p-8 border-l-4 border-l-primary shadow-sm">
+                <h3 className="text-xl font-semibold mb-3">Operasional Tidak Rapi</h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  Operasional laundry sering tidak rapi karena catatan manual dan komunikasi yang terpecah. Order bisa hilang, harga tertukar, dan status cucian tidak jelas.
+                </p>
               </Card>
-              <Card className="p-6">
-                <div className="flex gap-4">
-                  <div className="flex-shrink-0">
-                    <BarChart3 className="h-8 w-8 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-semibold mb-2">Dashboard Pemilik Multi-Outlet</h3>
-                    <p className="text-muted-foreground">Pemantauan revenue, order, kurir, jam tersibuk, mesin, dan layanan terlaris.</p>
-                  </div>
-                </div>
+              <Card className="p-8 border-l-4 border-l-primary shadow-sm">
+                <h3 className="text-xl font-semibold mb-3">Staff Butuh Sistem Sederhana</h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  Staff bekerja dengan ritme cepat sehingga butuh sistem yang simple dan langsung dipakai. Tidak ada waktu untuk pelatihan rumit atau interface yang membingungkan.
+                </p>
               </Card>
-              <Card className="p-6">
-                <div className="flex gap-4">
-                  <div className="flex-shrink-0">
-                    <Package className="h-8 w-8 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-semibold mb-2">Pickup–Delivery yang Terstruktur</h3>
-                    <p className="text-muted-foreground">Kurir dapat mencatat pickup, catatan pelanggan, dan status real-time.</p>
-                  </div>
-                </div>
-              </Card>
-              <Card className="p-6">
-                <div className="flex gap-4">
-                  <div className="flex-shrink-0">
-                    <WashflowLogo size={32} />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-semibold mb-2">Modular & Bisa Dipakai Seketika</h3>
-                    <p className="text-muted-foreground">Semua fitur bisa dipilih sesuai kebutuhan (tanpa kompleksitas ERP).</p>
-                  </div>
-                </div>
-              </Card>
-              <Card className="p-6">
-                <div className="flex gap-4">
-                  <div className="flex-shrink-0">
-                    <Smartphone className="h-8 w-8 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-semibold mb-2">Tidak Bergantung Perangkat Mahal</h3>
-                    <p className="text-muted-foreground">Bisa dipakai hanya dengan smartphone.</p>
-                  </div>
-                </div>
-              </Card>
-              <Card className="p-6">
-                <div className="flex gap-4">
-                  <div className="flex-shrink-0">
-                    <Eye className="h-8 w-8 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-semibold mb-2">Punya Mode Operasional + Mode Owner</h3>
-                    <p className="text-muted-foreground">Kasir fokus di order. Owner fokus di data.</p>
-                  </div>
-                </div>
+              <Card className="p-8 border-l-4 border-l-primary shadow-sm">
+                <h3 className="text-xl font-semibold mb-3">Owner Sulit Memantau Performa</h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  Owner sulit memantau performa karena kurangnya data dan laporan akurat. Tidak tahu order mana yang selesai, revenue harian, atau aktivitas staff.
+                </p>
               </Card>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Filosofi & Nilai Produk */}
+      {/* C. What WashFlow OS Does */}
+      <section className="py-20 bg-white">
+        <div className="container">
+          <div className="mx-auto max-w-4xl">
+            <h2 className="text-3xl font-bold mb-8 text-center">Apa yang Membuat WashFlow OS Berbeda</h2>
+            <div className="space-y-6 text-lg text-muted-foreground leading-relaxed">
+              <p>
+                WashFlow OS menyederhanakan alur operasional laundry dari order hingga delivery. Setiap langkah terhubung dalam satu flow yang jelas dan mudah diikuti.
+              </p>
+              <p>
+                Sistem ini memudahkan staff menjalankan pekerjaan tanpa pelatihan rumit. Interface sederhana, tombol jelas, dan langkah minimal membuat staff bisa langsung produktif.
+              </p>
+              <p>
+                Bagi owner, WashFlow OS memberikan insight dan kontrol melalui data yang jelas. Semua proses terekam, laporan otomatis, dan aktivitas staff terlihat real time.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* D. Core Philosophy */}
       <section className="py-20 bg-secondary/30">
         <div className="container">
           <div className="mx-auto max-w-4xl">
-            <h2 className="text-3xl font-bold mb-8 text-center">Filosofi & Nilai Produk</h2>
-            <div className="grid gap-6 md:grid-cols-2">
-              <Card className="p-6">
-                <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
+            <h2 className="text-3xl font-bold mb-12 text-center">Filosofi Produk</h2>
+            <div className="grid gap-6 md:grid-cols-3">
+              <Card className="p-6 text-center shadow-sm">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
                   <Zap className="h-6 w-6 text-primary" />
-                  Simplicity First
-                </h3>
-                <p className="text-muted-foreground">Sistem harus mudah dipakai karyawan baru tanpa training panjang.</p>
+                </div>
+                <h3 className="font-semibold mb-2">Simplicity</h3>
+                <p className="text-sm text-muted-foreground">Sederhana dan langsung dipakai</p>
               </Card>
-              <Card className="p-6">
-                <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
+              <Card className="p-6 text-center shadow-sm">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
                   <Eye className="h-6 w-6 text-primary" />
-                  Transparency & Accountability
-                </h3>
-                <p className="text-muted-foreground">Setiap order, transaksi, dan aktivitas tercatat jelas dan mudah dilacak.</p>
+                </div>
+                <h3 className="font-semibold mb-2">Clarity</h3>
+                <p className="text-sm text-muted-foreground">Proses jelas dan transparan</p>
               </Card>
-              <Card className="p-6">
-                <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
-                  <BarChart3 className="h-6 w-6 text-primary" />
-                  Real-Time Awareness
-                </h3>
-                <p className="text-muted-foreground">Pemilik harus bisa mengetahui kondisi outlet kapan pun dan dari mana pun.</p>
-              </Card>
-              <Card className="p-6">
-                <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
+              <Card className="p-6 text-center shadow-sm">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
                   <TrendingUp className="h-6 w-6 text-primary" />
-                  Data-Driven Laundry Operation
-                </h3>
-                <p className="text-muted-foreground">Laundry kecil sekalipun berhak memiliki dashboard setara bisnis modern.</p>
+                </div>
+                <h3 className="font-semibold mb-2">Efficiency</h3>
+                <p className="text-sm text-muted-foreground">Menghemat waktu dan tenaga</p>
+              </Card>
+              <Card className="p-6 text-center shadow-sm">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                  <Users className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="font-semibold mb-2">Human-Friendly</h3>
+                <p className="text-sm text-muted-foreground">Ramah untuk semua pengguna</p>
+              </Card>
+              <Card className="p-6 text-center shadow-sm">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                  <BarChart3 className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="font-semibold mb-2">Data Transparency</h3>
+                <p className="text-sm text-muted-foreground">Data jelas dan akurat</p>
+              </Card>
+              <Card className="p-6 text-center shadow-sm">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                  <Shield className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="font-semibold mb-2">Scalable</h3>
+                <p className="text-sm text-muted-foreground">Siap berkembang multi-outlet</p>
               </Card>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Misi Jangka Panjang */}
-      <section className="py-20">
-        <div className="container">
-          <div className="mx-auto max-w-3xl text-center">
-            <h2 className="text-3xl font-bold mb-6">Misi Jangka Panjang</h2>
-            <p className="text-xl text-muted-foreground leading-relaxed">
-              Membantu 10.000+ laundry di Indonesia bertransformasi dari bisnis manual menjadi bisnis modern yang efisien, terukur, dan siap berkembang menjadi franchise atau multi-outlet.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* Social Proof */}
-      <section className="py-20 bg-gradient-to-br from-primary/10 to-accent/10">
+      {/* E. How We Make It Easy for Staff */}
+      <section className="py-20 bg-white">
         <div className="container">
           <div className="mx-auto max-w-4xl">
-            <h2 className="text-3xl font-bold mb-8 text-center">Hasil yang Terbukti</h2>
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-              <Card className="p-6 text-center">
-                <div className="text-3xl font-bold text-primary mb-2">1-2 Jam</div>
-                <p className="text-muted-foreground">Menghemat waktu kerja kasir per hari</p>
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold mb-4">Easy for Staff</h2>
+              <p className="text-lg text-muted-foreground">
+                Sistem yang dirancang agar staff cepat mengadopsi dan langsung produktif
+              </p>
+            </div>
+            <div className="grid gap-6 md:grid-cols-2">
+              <Card className="p-6 shadow-sm">
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <Smartphone className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold mb-2">Interface Sederhana</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Tombol besar, teks jelas, dan navigasi intuitif. Tidak perlu manual tebal.
+                    </p>
+                  </div>
+                </div>
               </Card>
-              <Card className="p-6 text-center">
-                <div className="text-3xl font-bold text-primary mb-2">80%</div>
-                <p className="text-muted-foreground">Mengurangi kesalahan order</p>
+              <Card className="p-6 shadow-sm">
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <CheckCircle2 className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold mb-2">Tombol Jelas</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Setiap aksi punya tombol yang jelas. Tidak ada menu tersembunyi.
+                    </p>
+                  </div>
+                </div>
               </Card>
-              <Card className="p-6 text-center">
-                <div className="text-3xl font-bold text-primary mb-2">✓</div>
-                <p className="text-muted-foreground">Meningkatkan repeat customer melalui pengingat otomatis</p>
+              <Card className="p-6 shadow-sm">
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <Clock className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold mb-2">Langkah Minimal</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Proses order hanya butuh beberapa tap. Tidak ada form panjang.
+                    </p>
+                  </div>
+                </div>
               </Card>
-              <Card className="p-6 text-center">
-                <div className="text-3xl font-bold text-primary mb-2">10 Menit</div>
-                <p className="text-muted-foreground">Mulai gunakan tanpa instalasi</p>
+              <Card className="p-6 shadow-sm">
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <Smartphone className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold mb-2">Akses via HP</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Bisa dipakai dari smartphone yang sudah dimiliki. Tidak perlu perangkat khusus.
+                    </p>
+                  </div>
+                </div>
+              </Card>
+              <Card className="p-6 shadow-sm">
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <Eye className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold mb-2">Status Langsung Terlihat</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Setiap order menampilkan status dengan jelas. Tidak perlu bertanya-tanya.
+                    </p>
+                  </div>
+                </div>
+              </Card>
+              <Card className="p-6 shadow-sm">
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <Zap className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold mb-2">Tanpa Pelatihan Rumit</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Staff bisa langsung pakai dalam hitungan menit. Interface yang self-explanatory.
+                    </p>
+                  </div>
+                </div>
               </Card>
             </div>
           </div>
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="py-20 bg-gradient-to-br from-primary to-primary-hover">
+      {/* F. How We Make It Powerful for Owners */}
+      <section className="py-20 bg-secondary/30">
+        <div className="container">
+          <div className="mx-auto max-w-4xl">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold mb-4">Powerful for Owners</h2>
+              <p className="text-lg text-muted-foreground">
+                Kontrol penuh dan insight yang jelas untuk keputusan bisnis yang lebih baik
+              </p>
+            </div>
+            <div className="grid gap-6 md:grid-cols-2">
+              <Card className="p-6 shadow-sm">
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <BarChart3 className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold mb-2">Data Real Time</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Lihat revenue, order, dan aktivitas outlet kapan pun. Semua update langsung.
+                    </p>
+                  </div>
+                </div>
+              </Card>
+              <Card className="p-6 shadow-sm">
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <TrendingUp className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold mb-2">Laporan Otomatis</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Laporan harian, mingguan, dan bulanan tersedia otomatis. Tidak perlu input manual.
+                    </p>
+                  </div>
+                </div>
+              </Card>
+              <Card className="p-6 shadow-sm">
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <Shield className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold mb-2">Kontrol Penuh atas Outlet</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Pantau semua outlet dari satu dashboard. Multi-outlet management yang mudah.
+                    </p>
+                  </div>
+                </div>
+              </Card>
+              <Card className="p-6 shadow-sm">
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <Users className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold mb-2">Aktivitas Staff Terekam</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Setiap aksi staff tercatat dengan jelas. Transparansi dan akuntabilitas terjaga.
+                    </p>
+                  </div>
+                </div>
+              </Card>
+              <Card className="p-6 shadow-sm">
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <Eye className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold mb-2">Proses Lebih Terukur</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Setiap proses punya metrik yang jelas. Bisa diukur dan ditingkatkan.
+                    </p>
+                  </div>
+                </div>
+              </Card>
+              <Card className="p-6 shadow-sm">
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <BarChart3 className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold mb-2">Insight untuk Keputusan</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Data yang jelas membantu mengambil keputusan bisnis yang lebih tepat.
+                    </p>
+                  </div>
+                </div>
+              </Card>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* G. Vision Statement */}
+      <section className="py-20 bg-white">
         <div className="container">
           <div className="mx-auto max-w-3xl text-center">
-            <h2 className="text-3xl font-bold text-white mb-4">
-              Mulai gunakan washflow.os Core dalam 10 menit
-            </h2>
-            <p className="text-lg text-white/90 mb-8">
-              Tanpa instalasi, tanpa ribet.
+            <h2 className="text-3xl font-bold mb-6">Visi Kami</h2>
+            <p className="text-xl text-muted-foreground leading-relaxed">
+              WashFlow OS ingin menjadi fondasi digital untuk industri laundry yang lebih modern, efisien, dan siap scale menjadi multi-outlet atau franchise.
             </p>
-            <Link to="/dashboard">
-              <Button size="lg" className="bg-white text-primary hover:bg-white/90 font-semibold shadow-lg">
-                Coba Sekarang
+          </div>
+        </div>
+      </section>
+
+      {/* CTA - Light and Simple */}
+      <section className="py-16 bg-secondary/30">
+        <div className="container">
+          <div className="mx-auto max-w-2xl text-center">
+            <Link to="/how-it-works">
+              <Button 
+                variant="outline" 
+                size="lg"
+                className="text-primary border-primary hover:bg-primary hover:text-white"
+              >
+                Pelajari cara kerja WashFlow OS
+                <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
           </div>
@@ -302,7 +398,7 @@ const About = () => {
                 <span className="font-bold text-primary">washflow.os</span>
               </div>
               <p className="text-sm text-muted-foreground">
-                Revolusi bisnis laundry melalui ekosistem digital
+                Easy for Staff. Powerful for Owners.
               </p>
             </div>
             <div>
@@ -339,4 +435,3 @@ const About = () => {
 };
 
 export default About;
-

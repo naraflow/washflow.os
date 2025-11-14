@@ -100,7 +100,7 @@ const Benefits = () => {
                 <span className="font-bold text-primary">washflow.os</span>
               </div>
               <p className="text-sm text-muted-foreground">
-                Revolusi bisnis laundry melalui ekosistem digital
+                Easy for Staff. Powerful for Owners.
               </p>
             </div>
             <div>

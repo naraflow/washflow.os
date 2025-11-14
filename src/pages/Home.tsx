@@ -13,7 +13,6 @@ import { toast } from "sonner";
 const Home = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [trialModalOpen, setTrialModalOpen] = useState(false);
-  const [demoModalOpen, setDemoModalOpen] = useState(false);
   
   const [trialForm, setTrialForm] = useState({
     name: "",
@@ -22,27 +21,11 @@ const Home = () => {
     businessName: ""
   });
 
-  const [demoForm, setDemoForm] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    businessName: "",
-    date: "",
-    time: ""
-  });
-
   const handleTrialSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     toast.success("Terima kasih! Kami akan menghubungi Anda segera untuk memulai trial gratis 30 hari.");
     setTrialModalOpen(false);
     setTrialForm({ name: "", email: "", phone: "", businessName: "" });
-  };
-
-  const handleDemoSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    toast.success("Demo berhasil dijadwalkan! Kami akan menghubungi Anda sesuai waktu yang dipilih.");
-    setDemoModalOpen(false);
-    setDemoForm({ name: "", email: "", phone: "", businessName: "", date: "", time: "" });
   };
 
   return (
@@ -77,17 +60,14 @@ const Home = () => {
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-3">
             <Link to="/dashboard">
-              <Button variant="ghost" size="sm">
-                Dashboard
+              <Button 
+                size="sm" 
+                variant="outline"
+                className="border-gray-300"
+              >
+                Demo
               </Button>
             </Link>
-            <Button 
-              size="sm" 
-              variant="outline"
-              onClick={() => setDemoModalOpen(true)}
-            >
-              Demo
-            </Button>
             <Button 
               size="sm" 
               className="bg-primary text-primary-foreground hover:bg-primary-hover"
@@ -146,22 +126,15 @@ const Home = () => {
                 Biaya
               </a>
               <div className="flex flex-col gap-2 pt-2">
-                <Link to="/dashboard">
-                  <Button variant="ghost" size="sm" className="w-full">
-                    Dashboard
+                <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)}>
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    className="w-full border-gray-300"
+                  >
+                    Demo
                   </Button>
                 </Link>
-                <Button 
-                  size="sm" 
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => {
-                    setDemoModalOpen(true);
-                    setMobileMenuOpen(false);
-                  }}
-                >
-                  Demo
-                </Button>
                 <Button 
                   size="sm" 
                   className="w-full bg-primary text-primary-foreground hover:bg-primary-hover"
@@ -179,33 +152,51 @@ const Home = () => {
       </header>
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-primary via-primary to-primary-hover py-20 md:py-32">
-        <div className="absolute inset-0 bg-grid-white/[0.05] bg-[size:20px_20px]" />
-        <div className="container relative">
+      <section className="relative overflow-hidden py-20 md:py-32">
+        {/* Background Image - Modern Laundromat with Employee using Tablet */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{
+            backgroundImage: 'url("https://images.unsplash.com/photo-1558618666-fcd25c85cd64?q=80&w=2070")',
+            backgroundPosition: 'center',
+            backgroundSize: 'cover',
+          }}
+        />
+        
+        {/* Dark Overlay for Contrast */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/85 via-primary/80 to-primary-hover/85" />
+        
+        {/* Additional Dark Overlay for Better Text Readability */}
+        <div className="absolute inset-0 bg-black/40" />
+        
+        {/* Subtle gradient overlay for depth */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
+        
+        <div className="container relative z-10">
           <div className="mx-auto max-w-4xl text-center">
-            <h1 className="mb-6 text-4xl font-bold tracking-tight text-primary-foreground sm:text-5xl md:text-6xl">
-              Revolusi Bisnis Laundry <br />
-              <span className="text-white/90">Melalui Ekosistem Digital</span>
+            <h1 className="mb-6 text-4xl font-bold tracking-tight text-white sm:text-5xl md:text-6xl drop-shadow-lg">
+              Solution for Modern Laundry
             </h1>
-            <p className="mb-8 text-lg text-primary-foreground/90 md:text-xl">
-              Cara cerdas mengelola usaha laundry dengan model bisnis baru masa depan.
+            <p className="mb-8 text-lg text-white/95 md:text-xl drop-shadow-md">
+              Easy for Staff. Powerful for Owners.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button 
                 size="lg" 
-                className="bg-white text-primary hover:bg-white/90 font-semibold shadow-lg"
+                className="bg-white text-primary hover:bg-white/95 font-semibold shadow-xl border-2 border-white"
                 onClick={() => setTrialModalOpen(true)}
               >
-                Coba Gratis 30 Hari
+                Coba Gratis
               </Button>
-              <Button 
-                size="lg" 
-                variant="outline" 
-                className="border-2 border-white text-white hover:bg-white/10 hover:text-white font-semibold bg-transparent"
-                onClick={() => setDemoModalOpen(true)}
-              >
-                Ajukan Demo
-              </Button>
+              <Link to="/about">
+                <Button 
+                  size="lg" 
+                  variant="outline" 
+                  className="border-2 border-white text-white hover:bg-white/30 hover:text-white font-semibold bg-white/20 backdrop-blur-md shadow-lg drop-shadow-lg"
+                >
+                  Pelajari Lebih Lanjut
+                </Button>
+              </Link>
             </div>
           </div>
         </div>
@@ -221,7 +212,7 @@ const Home = () => {
                 <span className="font-bold text-primary">washflow.os</span>
               </div>
               <p className="text-sm text-muted-foreground">
-                Revolusi bisnis laundry melalui ekosistem digital
+                Easy for Staff. Powerful for Owners.
               </p>
             </div>
             <div>
@@ -313,87 +304,6 @@ const Home = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Demo Modal */}
-      <Dialog open={demoModalOpen} onOpenChange={setDemoModalOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Ajukan Demo</DialogTitle>
-            <DialogDescription>
-              Jadwalkan demo dengan tim kami untuk melihat bagaimana washflow.os dapat membantu bisnis Anda
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleDemoSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="demo-name">Nama Lengkap *</Label>
-              <Input
-                id="demo-name"
-                required
-                value={demoForm.name}
-                onChange={(e) => setDemoForm({ ...demoForm, name: e.target.value })}
-                placeholder="John Doe"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="demo-email">Email *</Label>
-              <Input
-                id="demo-email"
-                type="email"
-                required
-                value={demoForm.email}
-                onChange={(e) => setDemoForm({ ...demoForm, email: e.target.value })}
-                placeholder="john@example.com"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="demo-phone">Nomor Telepon *</Label>
-              <Input
-                id="demo-phone"
-                type="tel"
-                required
-                value={demoForm.phone}
-                onChange={(e) => setDemoForm({ ...demoForm, phone: e.target.value })}
-                placeholder="081234567890"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="demo-business">Nama Usaha *</Label>
-              <Input
-                id="demo-business"
-                required
-                value={demoForm.businessName}
-                onChange={(e) => setDemoForm({ ...demoForm, businessName: e.target.value })}
-                placeholder="Laundry ABC"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="demo-date">Tanggal *</Label>
-                <Input
-                  id="demo-date"
-                  type="date"
-                  required
-                  min={new Date().toISOString().split('T')[0]}
-                  value={demoForm.date}
-                  onChange={(e) => setDemoForm({ ...demoForm, date: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="demo-time">Waktu *</Label>
-                <Input
-                  id="demo-time"
-                  type="time"
-                  required
-                  value={demoForm.time}
-                  onChange={(e) => setDemoForm({ ...demoForm, time: e.target.value })}
-                />
-              </div>
-            </div>
-            <Button type="submit" className="w-full">
-              Jadwalkan Demo
-            </Button>
-          </form>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
