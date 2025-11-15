@@ -3,6 +3,7 @@ import { WashflowLogo } from "@/components/WashflowLogo";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import heroImage from "@/assets/hero-about.jpg";
 
 const About = () => {
   return (
@@ -36,7 +37,7 @@ const About = () => {
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{
-            backgroundImage: 'url("https://images.unsplash.com/photo-1558618666-fcd25c85cd64?q=80&w=2070")',
+            backgroundImage: `url(${heroImage})`,
             backgroundPosition: 'center',
             backgroundSize: 'cover',
           }}

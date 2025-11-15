@@ -17,6 +17,7 @@ const getStageLabel = (stage: WorkflowStage): string => {
     washing: 'Washing',
     drying: 'Drying',
     ironing: 'Ironing',
+    packing: 'Packing',
     qc: 'Quality Control',
     ready: 'Ready',
     picked: 'Picked',
