@@ -3,9 +3,10 @@ import { cn } from "@/lib/utils";
 interface WashflowLogoProps {
   className?: string;
   size?: number;
+  animated?: boolean;
 }
 
-export const WashflowLogo = ({ className, size = 24 }: WashflowLogoProps) => {
+export const WashflowLogo = ({ className, size = 24, animated = false }: WashflowLogoProps) => {
   return (
     <svg
       width={size}
@@ -41,7 +42,7 @@ export const WashflowLogo = ({ className, size = 24 }: WashflowLogoProps) => {
       <circle cx="9.2" cy="8.5" r="0.4" fill="hsl(var(--primary))" opacity="0.6" />
       <circle cx="10.4" cy="8.5" r="0.4" fill="hsl(var(--primary))" opacity="0.6" />
       
-      {/* Door outer ring */}
+      {/* Door outer ring - with pulse animation */}
       <circle
         cx="12"
         cy="14"
@@ -50,6 +51,8 @@ export const WashflowLogo = ({ className, size = 24 }: WashflowLogoProps) => {
         stroke="hsl(var(--primary))"
         strokeWidth="0.8"
         opacity="0.3"
+        className={animated ? "animate-pulse-ring" : ""}
+        style={{ transformOrigin: "50% 58.33%" }}
       />
       
       {/* Door middle ring */}
@@ -61,24 +64,30 @@ export const WashflowLogo = ({ className, size = 24 }: WashflowLogoProps) => {
         opacity="0.6"
       />
       
-      {/* Door inner circle - darker */}
-      <circle
-        cx="12"
-        cy="14"
-        r="2.5"
-        fill="hsl(var(--primary))"
-        opacity="0.8"
-      />
-      
-      {/* Highlight reflection */}
-      <path
-        d="M 13 12.5 A 2 2 0 0 1 14 14"
-        stroke="white"
-        strokeWidth="0.6"
-        fill="none"
-        strokeLinecap="round"
-        opacity="0.7"
-      />
+      {/* Animated rotating drum group */}
+      <g
+        className={animated ? "animate-spin-slow" : ""}
+        style={{ transformOrigin: "50% 58.33%" }}
+      >
+        {/* Door inner circle - darker */}
+        <circle
+          cx="12"
+          cy="14"
+          r="2.5"
+          fill="hsl(var(--primary))"
+          opacity="0.8"
+        />
+        
+        {/* Highlight reflection */}
+        <path
+          d="M 13 12.5 A 2 2 0 0 1 14 14"
+          stroke="white"
+          strokeWidth="0.6"
+          fill="none"
+          strokeLinecap="round"
+          opacity="0.7"
+        />
+      </g>
     </svg>
   );
 };
