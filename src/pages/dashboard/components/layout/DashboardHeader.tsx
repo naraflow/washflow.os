@@ -38,7 +38,7 @@ export const DashboardHeader = () => {
       <div className="container flex h-16 items-center justify-between px-4">
         <div className="flex items-center gap-4">
           <Link to="/" className="flex items-center gap-2">
-            <WashflowLogo size={28} />
+            <WashflowLogo size={28} animated />
             <span className="text-xl font-bold text-primary">washflow.os</span>
           </Link>
           <div className="hidden md:flex items-center gap-6 ml-6 pl-6 border-l">
