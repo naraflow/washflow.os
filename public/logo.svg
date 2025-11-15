@@ -1,32 +1,24 @@
 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Blue rounded square background -->
-  <rect x="2" y="2" width="20" height="20" rx="4" fill="#3b82f6"/>
+  <!-- Soft blue rounded background -->
+  <rect x="2" y="2" width="20" height="20" rx="5" fill="#7DBBCE"/>
   
-  <!-- Washing Machine Body - White -->
-  <rect x="5" y="8" width="14" height="12" rx="1" fill="white"/>
+  <!-- Washing Machine Body - Light with shadow -->
+  <rect x="6" y="6" width="12" height="14" rx="2" fill="white" opacity="0.95"/>
   
-  <!-- Control Panel - Top section -->
-  <rect x="5" y="5" width="14" height="3" rx="0.5" fill="white"/>
+  <!-- Control dots - top left -->
+  <circle cx="8" cy="8.5" r="0.4" fill="#7DBBCE" opacity="0.6"/>
+  <circle cx="9.2" cy="8.5" r="0.4" fill="#7DBBCE" opacity="0.6"/>
+  <circle cx="10.4" cy="8.5" r="0.4" fill="#7DBBCE" opacity="0.6"/>
   
-  <!-- Detergent dispenser drawer -->
-  <rect x="6" y="5.5" width="2" height="2" rx="0.2" fill="#3b82f6"/>
+  <!-- Door outer ring -->
+  <circle cx="12" cy="14" r="4.5" fill="none" stroke="#7DBBCE" stroke-width="0.8" opacity="0.3"/>
   
-  <!-- Vertical separator -->
-  <line x1="9" y1="5.5" x2="9" y2="8" stroke="#3b82f6" stroke-width="0.5"/>
+  <!-- Door middle ring -->
+  <circle cx="12" cy="14" r="3.5" fill="#7DBBCE" opacity="0.6"/>
   
-  <!-- Control dial -->
-  <circle cx="12" cy="6.5" r="0.8" fill="#3b82f6"/>
+  <!-- Door inner circle - darker -->
+  <circle cx="12" cy="14" r="2.5" fill="#7DBBCE" opacity="0.8"/>
   
-  <!-- Display/Button -->
-  <rect x="14" y="5.8" width="3" height="1.4" rx="0.2" fill="#3b82f6"/>
-  
-  <!-- Main door - outer white circle -->
-  <circle cx="12" cy="14" r="4" fill="none" stroke="white" stroke-width="1.5"/>
-  
-  <!-- Inner blue circle (glass/drum) -->
-  <circle cx="12" cy="14" r="2.8" fill="#3b82f6"/>
-  
-  <!-- Reflection/handle - crescent shape -->
-  <path d="M 13.5 14 A 2.5 2.5 0 0 1 13.5 12.5" stroke="white" stroke-width="0.8" fill="none" stroke-linecap="round"/>
+  <!-- Highlight reflection -->
+  <path d="M 13 12.5 A 2 2 0 0 1 14 14" stroke="white" stroke-width="0.6" fill="none" stroke-linecap="round" opacity="0.7"/>
 </svg>
-

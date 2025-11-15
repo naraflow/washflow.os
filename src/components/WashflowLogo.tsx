@@ -15,101 +15,70 @@ export const WashflowLogo = ({ className, size = 24 }: WashflowLogoProps) => {
       xmlns="http://www.w3.org/2000/svg"
       className={cn(className)}
     >
-      {/* Blue rounded square background */}
+      {/* Soft blue rounded background */}
       <rect
         x="2"
         y="2"
         width="20"
         height="20"
-        rx="4"
+        rx="5"
         fill="hsl(var(--primary))"
       />
       
-      {/* Washing Machine Body - White */}
-      <rect
-        x="5"
-        y="8"
-        width="14"
-        height="12"
-        rx="1"
-        fill="white"
-      />
-      
-      {/* Control Panel - Top section */}
-      <rect
-        x="5"
-        y="5"
-        width="14"
-        height="3"
-        rx="0.5"
-        fill="white"
-      />
-      
-      {/* Detergent dispenser drawer */}
+      {/* Washing Machine Body - Light with shadow */}
       <rect
         x="6"
-        y="5.5"
-        width="2"
-        height="2"
-        rx="0.2"
-        fill="hsl(var(--primary))"
+        y="6"
+        width="12"
+        height="14"
+        rx="2"
+        fill="white"
+        opacity="0.95"
       />
       
-      {/* Vertical separator */}
-      <line
-        x1="9"
-        y1="5.5"
-        x2="9"
-        y2="8"
-        stroke="hsl(var(--primary))"
-        strokeWidth="0.5"
-      />
+      {/* Control dots - top left */}
+      <circle cx="8" cy="8.5" r="0.4" fill="hsl(var(--primary))" opacity="0.6" />
+      <circle cx="9.2" cy="8.5" r="0.4" fill="hsl(var(--primary))" opacity="0.6" />
+      <circle cx="10.4" cy="8.5" r="0.4" fill="hsl(var(--primary))" opacity="0.6" />
       
-      {/* Control dial */}
-      <circle
-        cx="12"
-        cy="6.5"
-        r="0.8"
-        fill="hsl(var(--primary))"
-      />
-      
-      {/* Display/Button */}
-      <rect
-        x="14"
-        y="5.8"
-        width="3"
-        height="1.4"
-        rx="0.2"
-        fill="hsl(var(--primary))"
-      />
-      
-      {/* Main door - outer white circle */}
+      {/* Door outer ring */}
       <circle
         cx="12"
         cy="14"
-        r="4"
+        r="4.5"
         fill="none"
-        stroke="white"
-        strokeWidth="1.5"
+        stroke="hsl(var(--primary))"
+        strokeWidth="0.8"
+        opacity="0.3"
       />
       
-      {/* Inner blue circle (glass/drum) */}
+      {/* Door middle ring */}
       <circle
         cx="12"
         cy="14"
-        r="2.8"
+        r="3.5"
         fill="hsl(var(--primary))"
+        opacity="0.6"
       />
       
-      {/* Reflection/handle - crescent shape */}
+      {/* Door inner circle - darker */}
+      <circle
+        cx="12"
+        cy="14"
+        r="2.5"
+        fill="hsl(var(--primary))"
+        opacity="0.8"
+      />
+      
+      {/* Highlight reflection */}
       <path
-        d="M 13.5 14 A 2.5 2.5 0 0 1 13.5 12.5"
+        d="M 13 12.5 A 2 2 0 0 1 14 14"
         stroke="white"
-        strokeWidth="0.8"
+        strokeWidth="0.6"
         fill="none"
         strokeLinecap="round"
+        opacity="0.7"
       />
     </svg>
   );
 };
-
