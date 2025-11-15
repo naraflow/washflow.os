@@ -15,9 +15,10 @@ interface CustomerDetailsModalProps {
   onClose: () => void;
   onEdit: (customer: Customer) => void;
   onDelete: (id: string) => void;
+  currentRole?: 'kasir' | 'supervisor' | 'owner';
 }
 
-export const CustomerDetailsModal = ({ customer, onClose, onEdit, onDelete }: CustomerDetailsModalProps) => {
+export const CustomerDetailsModal = ({ customer, onClose, onEdit, onDelete, currentRole }: CustomerDetailsModalProps) => {
   const orders = useDashboardStore((state) => state.orders);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
@@ -115,30 +116,33 @@ export const CustomerDetailsModal = ({ customer, onClose, onEdit, onDelete }: Cu
                     </div>
                   )}
 
-                  <div className="flex gap-2 pt-4 border-t">
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        setIsEditModalOpen(true);
-                      }}
-                      className="flex-1"
-                    >
-                      <Edit className="h-4 w-4 mr-2" />
-                      Edit
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        if (confirm("Apakah Anda yakin ingin menghapus pelanggan ini?")) {
-                          onDelete(customer.id);
-                          onClose();
-                        }
-                      }}
-                      className="text-destructive hover:text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  {/* Edit dan Delete buttons - hanya untuk kasir, supervisor hanya bisa lihat */}
+                  {currentRole !== 'supervisor' && (
+                    <div className="flex gap-2 pt-4 border-t">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setIsEditModalOpen(true);
+                        }}
+                        className="flex-1"
+                      >
+                        <Edit className="h-4 w-4 mr-2" />
+                        Edit
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          if (confirm("Apakah Anda yakin ingin menghapus pelanggan ini?")) {
+                            onDelete(customer.id);
+                            onClose();
+                          }
+                        }}
+                        className="text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </Card>
             </TabsContent>

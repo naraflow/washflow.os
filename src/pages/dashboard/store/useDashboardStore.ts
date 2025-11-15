@@ -75,6 +75,8 @@ interface DashboardStore {
   setSelectedTab: (tab: string) => void;
   selectedOutlet?: string;
   setSelectedOutlet: (outletId?: string) => void;
+  currentRole: 'kasir' | 'supervisor' | 'owner';
+  setCurrentRole: (role: 'kasir' | 'supervisor' | 'owner') => void;
 }
 
 // Default services
@@ -142,6 +144,7 @@ export const useDashboardStore = create<DashboardStore>()(
       qualityControls: [],
       selectedTab: 'orders',
       selectedOutlet: undefined,
+      currentRole: 'supervisor', // Default role
       
       // Orders
       addOrder: (order) => set((state) => ({ orders: [...state.orders, order] })),
@@ -269,6 +272,7 @@ export const useDashboardStore = create<DashboardStore>()(
       // UI State
       setSelectedTab: (tab) => set({ selectedTab: tab }),
       setSelectedOutlet: (outletId) => set({ selectedOutlet: outletId }),
+      setCurrentRole: (role) => set({ currentRole: role }),
     }),
     {
       name: 'washflow-dashboard-storage',

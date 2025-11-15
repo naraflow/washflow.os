@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ClipboardList } from "lucide-react";
 import { WashflowLogo } from "@/components/WashflowLogo";
 import { DashboardHeader } from "./dashboard/components/layout/DashboardHeader";
 import { QuickActions } from "./dashboard/components/layout/QuickActions";
@@ -43,9 +43,22 @@ const Dashboard = () => {
   const setSelectedTab = useDashboardStore((state) => state.setSelectedTab);
   const selectedTab = useDashboardStore((state) => state.selectedTab);
   const orders = useDashboardStore((state) => state.orders);
+  const currentRole = useDashboardStore((state) => state.currentRole);
+  const setCurrentRole = useDashboardStore((state) => state.setCurrentRole);
   
   // Start machine timer updates
   useMachineTimer();
+
+  // Set default tab based on role when role changes
+  useEffect(() => {
+    if (currentRole === 'kasir') {
+      setSelectedTab('orders');
+    } else if (currentRole === 'owner') {
+      setSelectedTab('reports');
+    } else if (currentRole === 'supervisor') {
+      setSelectedTab('workflow-overview');
+    }
+  }, [currentRole, setSelectedTab]);
 
   // Calculate order counts per stage
   const stageCounts = useMemo(() => {
@@ -77,6 +90,17 @@ const Dashboard = () => {
 
     return counts;
   }, [orders]);
+
+  // Role-based permissions
+  // Kasir: create order, history order, tambah customer
+  // Supervisor: keseluruhan (semua fitur)
+  // Owner: fokus ke laporan
+  const canAccessWorkflow = currentRole === 'supervisor';
+  const canAccessOrder = currentRole === 'kasir' || currentRole === 'supervisor';
+  const canAccessCustomers = currentRole === 'kasir' || currentRole === 'supervisor';
+  const canAccessServices = currentRole === 'supervisor';
+  const canAccessManagement = currentRole === 'supervisor';
+  const canAccessReports = currentRole === 'owner';
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -267,243 +291,328 @@ const Dashboard = () => {
       <DashboardHeader />
       
       <div className="container py-8 px-4">
-        <QuickActions
-          onNewOrder={() => setIsOrderModalOpen(true)}
-        />
+        {/* QuickActions - hanya untuk kasir (bisa create), supervisor hanya bisa view */}
+        {currentRole === 'kasir' && (
+          <QuickActions
+            onNewOrder={() => setIsOrderModalOpen(true)}
+          />
+        )}
+        {currentRole === 'supervisor' && (
+          <div className="flex flex-wrap gap-2 mb-6">
+            <Button variant="outline" onClick={() => setSelectedTab('orders')} className="gap-2">
+              <ClipboardList className="h-4 w-4" />
+              Lihat Orders
+            </Button>
+          </div>
+        )}
 
         <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
-          {/* Workflow Section */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-3">
-              <div className="h-px flex-1 bg-border"></div>
-              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2">
-                Workflow
-              </span>
-              <div className="h-px flex-1 bg-border"></div>
+          {/* Workflow Section - hanya untuk supervisor dan owner */}
+          {canAccessWorkflow && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="h-px flex-1 bg-border"></div>
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2">
+                  Workflow
+                </span>
+                <div className="h-px flex-1 bg-border"></div>
+              </div>
+              <TabsList className="grid w-full grid-cols-2 lg:grid-cols-9 lg:w-auto gap-2 p-2 bg-transparent">
+                <TabsTrigger 
+                  value="workflow-overview" 
+                  className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors relative"
+                >
+                  Overview
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="reception" 
+                  className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors relative"
+                >
+                  Order
+                  {stageCounts['reception'] > 0 && (
+                    <Badge 
+                      variant="default" 
+                      className="ml-2 h-5 min-w-5 px-1.5 text-xs flex items-center justify-center bg-primary text-primary-foreground"
+                    >
+                      {stageCounts['reception']}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="sorting" 
+                  className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors relative"
+                >
+                  Sorting
+                  {stageCounts['sorting'] > 0 && (
+                    <Badge 
+                      variant="default" 
+                      className="ml-2 h-5 min-w-5 px-1.5 text-xs flex items-center justify-center bg-primary text-primary-foreground"
+                    >
+                      {stageCounts['sorting']}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="washing" 
+                  className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors relative"
+                >
+                  Washing
+                  {stageCounts['washing'] > 0 && (
+                    <Badge 
+                      variant="default" 
+                      className="ml-2 h-5 min-w-5 px-1.5 text-xs flex items-center justify-center bg-primary text-primary-foreground"
+                    >
+                      {stageCounts['washing']}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="drying" 
+                  className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors relative"
+                >
+                  Drying
+                  {stageCounts['drying'] > 0 && (
+                    <Badge 
+                      variant="default" 
+                      className="ml-2 h-5 min-w-5 px-1.5 text-xs flex items-center justify-center bg-primary text-primary-foreground"
+                    >
+                      {stageCounts['drying']}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="ironing" 
+                  className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors relative"
+                >
+                  Ironing
+                  {stageCounts['ironing'] > 0 && (
+                    <Badge 
+                      variant="default" 
+                      className="ml-2 h-5 min-w-5 px-1.5 text-xs flex items-center justify-center bg-primary text-primary-foreground"
+                    >
+                      {stageCounts['ironing']}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="packing" 
+                  className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors relative"
+                >
+                  Packing
+                  {stageCounts['packing'] > 0 && (
+                    <Badge 
+                      variant="default" 
+                      className="ml-2 h-5 min-w-5 px-1.5 text-xs flex items-center justify-center bg-primary text-primary-foreground"
+                    >
+                      {stageCounts['packing']}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="ready" 
+                  className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors relative"
+                >
+                  Ready
+                  {stageCounts['ready'] > 0 && (
+                    <Badge 
+                      variant="default" 
+                      className="ml-2 h-5 min-w-5 px-1.5 text-xs flex items-center justify-center bg-primary text-primary-foreground"
+                    >
+                      {stageCounts['ready']}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="pickup-delivery" 
+                  className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors relative"
+                >
+                  Pickup/Delivery
+                  {stageCounts['pickup-delivery'] > 0 && (
+                    <Badge 
+                      variant="default" 
+                      className="ml-2 h-5 min-w-5 px-1.5 text-xs flex items-center justify-center bg-primary text-primary-foreground"
+                    >
+                      {stageCounts['pickup-delivery']}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+              </TabsList>
             </div>
-            <TabsList className="grid w-full grid-cols-2 lg:grid-cols-9 lg:w-auto gap-2 p-2 bg-transparent">
-              <TabsTrigger 
-                value="workflow-overview" 
-                className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors relative"
-              >
-                Overview
-              </TabsTrigger>
-              <TabsTrigger 
-                value="reception" 
-                className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors relative"
-              >
-                Order
-                {stageCounts['reception'] > 0 && (
-                  <Badge 
-                    variant="default" 
-                    className="ml-2 h-5 min-w-5 px-1.5 text-xs flex items-center justify-center bg-primary text-primary-foreground"
-                  >
-                    {stageCounts['reception']}
-                  </Badge>
-                )}
-              </TabsTrigger>
-              <TabsTrigger 
-                value="sorting" 
-                className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors relative"
-              >
-                Sorting
-                {stageCounts['sorting'] > 0 && (
-                  <Badge 
-                    variant="default" 
-                    className="ml-2 h-5 min-w-5 px-1.5 text-xs flex items-center justify-center bg-primary text-primary-foreground"
-                  >
-                    {stageCounts['sorting']}
-                  </Badge>
-                )}
-              </TabsTrigger>
-              <TabsTrigger 
-                value="washing" 
-                className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors relative"
-              >
-                Washing
-                {stageCounts['washing'] > 0 && (
-                  <Badge 
-                    variant="default" 
-                    className="ml-2 h-5 min-w-5 px-1.5 text-xs flex items-center justify-center bg-primary text-primary-foreground"
-                  >
-                    {stageCounts['washing']}
-                  </Badge>
-                )}
-              </TabsTrigger>
-              <TabsTrigger 
-                value="drying" 
-                className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors relative"
-              >
-                Drying
-                {stageCounts['drying'] > 0 && (
-                  <Badge 
-                    variant="default" 
-                    className="ml-2 h-5 min-w-5 px-1.5 text-xs flex items-center justify-center bg-primary text-primary-foreground"
-                  >
-                    {stageCounts['drying']}
-                  </Badge>
-                )}
-              </TabsTrigger>
-              <TabsTrigger 
-                value="ironing" 
-                className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors relative"
-              >
-                Ironing
-                {stageCounts['ironing'] > 0 && (
-                  <Badge 
-                    variant="default" 
-                    className="ml-2 h-5 min-w-5 px-1.5 text-xs flex items-center justify-center bg-primary text-primary-foreground"
-                  >
-                    {stageCounts['ironing']}
-                  </Badge>
-                )}
-              </TabsTrigger>
-              <TabsTrigger 
-                value="packing" 
-                className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors relative"
-              >
-                Packing
-                {stageCounts['packing'] > 0 && (
-                  <Badge 
-                    variant="default" 
-                    className="ml-2 h-5 min-w-5 px-1.5 text-xs flex items-center justify-center bg-primary text-primary-foreground"
-                  >
-                    {stageCounts['packing']}
-                  </Badge>
-                )}
-              </TabsTrigger>
-              <TabsTrigger 
-                value="ready" 
-                className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors relative"
-              >
-                Ready
-                {stageCounts['ready'] > 0 && (
-                  <Badge 
-                    variant="default" 
-                    className="ml-2 h-5 min-w-5 px-1.5 text-xs flex items-center justify-center bg-primary text-primary-foreground"
-                  >
-                    {stageCounts['ready']}
-                  </Badge>
-                )}
-              </TabsTrigger>
-              <TabsTrigger 
-                value="pickup-delivery" 
-                className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors relative"
-              >
-                Pickup/Delivery
-                {stageCounts['pickup-delivery'] > 0 && (
-                  <Badge 
-                    variant="default" 
-                    className="ml-2 h-5 min-w-5 px-1.5 text-xs flex items-center justify-center bg-primary text-primary-foreground"
-                  >
-                    {stageCounts['pickup-delivery']}
-                  </Badge>
-                )}
-              </TabsTrigger>
-            </TabsList>
-          </div>
+          )}
 
-          {/* Services & Promo Section */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-3">
-              <div className="h-px flex-1 bg-border"></div>
-              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2">
-                Services & Promo
-              </span>
-              <div className="h-px flex-1 bg-border"></div>
+          {/* Services & Promo Section - hanya untuk supervisor dan owner */}
+          {canAccessServices && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="h-px flex-1 bg-border"></div>
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2">
+                  Services & Promo
+                </span>
+                <div className="h-px flex-1 bg-border"></div>
+              </div>
+              <TabsList className="grid w-full grid-cols-2 lg:grid-cols-2 lg:w-auto gap-2 p-2 bg-transparent">
+                <TabsTrigger value="services" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors">Layanan</TabsTrigger>
+                <TabsTrigger value="promo" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors">Promo</TabsTrigger>
+              </TabsList>
             </div>
-            <TabsList className="grid w-full grid-cols-2 lg:grid-cols-2 lg:w-auto gap-2 p-2 bg-transparent">
-              <TabsTrigger value="services" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors">Layanan</TabsTrigger>
-              <TabsTrigger value="promo" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors">Promo</TabsTrigger>
-            </TabsList>
-          </div>
+          )}
 
-          {/* Management Section */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-3">
-              <div className="h-px flex-1 bg-border"></div>
-              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2">
-                Management
-              </span>
-              <div className="h-px flex-1 bg-border"></div>
+          {/* Management Section - untuk kasir (Customers), supervisor (semua), owner (Reports) */}
+          {(canAccessCustomers || canAccessManagement || canAccessReports) && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="h-px flex-1 bg-border"></div>
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2">
+                  {currentRole === 'owner' ? 'Laporan' : 'Management'}
+                </span>
+                <div className="h-px flex-1 bg-border"></div>
+              </div>
+              <TabsList className={`grid w-full gap-2 p-2 bg-transparent ${
+                currentRole === 'kasir' ? 'grid-cols-1 lg:grid-cols-1' :
+                currentRole === 'owner' ? 'grid-cols-1 lg:grid-cols-1' :
+                'grid-cols-3 lg:grid-cols-3'
+              }`}>
+                {/* Customers - untuk kasir, supervisor */}
+                {canAccessCustomers && (
+                  <TabsTrigger value="customers" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors">
+                    Pelanggan
+                  </TabsTrigger>
+                )}
+                {/* Outlets, Machines - hanya supervisor */}
+                {currentRole === 'supervisor' && (
+                  <>
+                    <TabsTrigger value="outlets" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors">
+                      Outlet
+                    </TabsTrigger>
+                    <TabsTrigger value="machines" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors">
+                      Mesin
+                    </TabsTrigger>
+                  </>
+                )}
+                {/* Reports - hanya owner */}
+                {canAccessReports && (
+                  <TabsTrigger value="reports" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors">
+                    Laporan
+                  </TabsTrigger>
+                )}
+              </TabsList>
             </div>
-            <TabsList className="grid w-full grid-cols-4 lg:grid-cols-4 lg:w-auto gap-2 p-2 bg-transparent">
-              <TabsTrigger value="outlets" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors">Outlet</TabsTrigger>
-              <TabsTrigger value="customers" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors">Pelanggan</TabsTrigger>
-              <TabsTrigger value="machines" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors">Mesin</TabsTrigger>
-              <TabsTrigger value="reports" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors">Laporan</TabsTrigger>
-            </TabsList>
-          </div>
+          )}
 
-          <TabsContent value="workflow-overview" className="space-y-4">
-            <WorkflowOverview />
-          </TabsContent>
+          {/* Order Tab - untuk kasir dan supervisor (history order) */}
+          {(currentRole === 'kasir' || currentRole === 'supervisor') && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="h-px flex-1 bg-border"></div>
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2">
+                  Orders
+                </span>
+                <div className="h-px flex-1 bg-border"></div>
+              </div>
+              <TabsList className="grid w-full grid-cols-1 lg:grid-cols-1 lg:w-auto gap-2 p-2 bg-transparent">
+                <TabsTrigger value="orders" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors">
+                  History Order
+                </TabsTrigger>
+          </TabsList>
+            </div>
+          )}
 
-          <TabsContent value="reception" className="space-y-4">
-            <ReceptionView />
-          </TabsContent>
+          {/* TabsContent - Conditional rendering */}
+          {canAccessWorkflow && (
+            <>
+              <TabsContent value="workflow-overview" className="space-y-4">
+                <WorkflowOverview />
+              </TabsContent>
 
-          <TabsContent value="sorting" className="space-y-4">
-            <SortingView />
-          </TabsContent>
+              <TabsContent value="reception" className="space-y-4">
+                <ReceptionView />
+              </TabsContent>
 
-          <TabsContent value="washing" className="space-y-4">
-            <WashingView />
-          </TabsContent>
+              <TabsContent value="sorting" className="space-y-4">
+                <SortingView />
+              </TabsContent>
 
-          <TabsContent value="drying" className="space-y-4">
-            <DryingView />
-          </TabsContent>
+              <TabsContent value="washing" className="space-y-4">
+                <WashingView />
+              </TabsContent>
 
-          <TabsContent value="ironing" className="space-y-4">
-            <IronView />
-          </TabsContent>
+              <TabsContent value="drying" className="space-y-4">
+                <DryingView />
+              </TabsContent>
 
-          <TabsContent value="packing" className="space-y-4">
-            <PackingView />
-          </TabsContent>
+              <TabsContent value="ironing" className="space-y-4">
+                <IronView />
+              </TabsContent>
 
-          <TabsContent value="ready" className="space-y-4">
-            <ReadyView />
-          </TabsContent>
+              <TabsContent value="packing" className="space-y-4">
+                <PackingView />
+              </TabsContent>
 
+              <TabsContent value="ready" className="space-y-4">
+                <ReadyView />
+              </TabsContent>
+
+              <TabsContent value="pickup-delivery" className="space-y-4">
+                <PickupDeliveryList />
+              </TabsContent>
+            </>
+          )}
+
+          {/* Order Content - untuk kasir dan supervisor (view only) */}
+          {(currentRole === 'kasir' || currentRole === 'supervisor') && (
           <TabsContent value="orders" className="space-y-4">
             <OrderList />
           </TabsContent>
+          )}
 
-          <TabsContent value="customers" className="space-y-4">
-            <CustomerList />
-          </TabsContent>
+          {/* Customers - untuk kasir, supervisor, owner */}
+          {canAccessCustomers && (
+            <TabsContent value="customers" className="space-y-4">
+              <CustomerList currentRole={currentRole} />
+            </TabsContent>
+          )}
 
+          {/* Services - untuk supervisor dan owner */}
+          {canAccessServices && (
           <TabsContent value="services" className="space-y-4">
             <ServiceList />
           </TabsContent>
+          )}
 
-          <TabsContent value="pickup-delivery" className="space-y-4">
-            <PickupDeliveryList />
-          </TabsContent>
+          {/* Promo - hanya untuk supervisor dan owner */}
+          {canAccessServices && (
+            <TabsContent value="promo" className="space-y-4">
+              <Card className="p-6">
+                <h3 className="text-lg font-semibold mb-4">Promo Management</h3>
+                <p className="text-muted-foreground">
+                  Fitur promo akan segera tersedia. Di sini Anda dapat mengelola promosi dan diskon untuk layanan.
+                </p>
+              </Card>
+            </TabsContent>
+          )}
 
-          <TabsContent value="promo" className="space-y-4">
-            <Card className="p-6">
-              <h3 className="text-lg font-semibold mb-4">Promo Management</h3>
-              <p className="text-muted-foreground">
-                Fitur promo akan segera tersedia. Di sini Anda dapat mengelola promosi dan diskon untuk layanan.
-              </p>
-            </Card>
-          </TabsContent>
-
+          {/* Outlets - hanya supervisor */}
+          {currentRole === 'supervisor' && (
           <TabsContent value="outlets" className="space-y-4">
             <OutletForm />
           </TabsContent>
+          )}
 
+          {/* Machines - hanya supervisor */}
+          {currentRole === 'supervisor' && (
           <TabsContent value="machines" className="space-y-4">
             <MachineList />
           </TabsContent>
+          )}
 
+          {/* Reports - hanya owner */}
+          {canAccessReports && (
           <TabsContent value="reports" className="space-y-4">
             <AdvancedReports />
           </TabsContent>
+          )}
 
+          {/* Overview - untuk semua role */}
           <TabsContent value="overview" className="space-y-4">
             <Card className="p-6">
               <h3 className="text-lg font-semibold mb-4">Ringkasan Bisnis</h3>
@@ -540,7 +649,8 @@ const Dashboard = () => {
         </Tabs>
       </div>
 
-      {isOrderModalOpen && (
+      {/* Order Modal - hanya untuk kasir */}
+      {currentRole === 'kasir' && isOrderModalOpen && (
         <OrderModal
           order={null}
           onClose={() => setIsOrderModalOpen(false)}

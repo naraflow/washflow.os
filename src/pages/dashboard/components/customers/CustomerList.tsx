@@ -9,7 +9,11 @@ import { format } from "date-fns";
 import { CustomerModal } from "./CustomerModal";
 import { CustomerDetailsModal } from "./CustomerDetailsModal";
 
-export const CustomerList = () => {
+interface CustomerListProps {
+  currentRole?: 'kasir' | 'supervisor' | 'owner';
+}
+
+export const CustomerList = ({ currentRole }: CustomerListProps) => {
   const customers = useDashboardStore((state) => state.customers);
   const deleteCustomer = useDashboardStore((state) => state.deleteCustomer);
   const [searchQuery, setSearchQuery] = useState("");
@@ -56,10 +60,12 @@ export const CustomerList = () => {
             className="pl-10"
           />
         </div>
-        <Button onClick={handleAdd}>
-          <Plus className="h-4 w-4 mr-2" />
-          Tambah Pelanggan
-        </Button>
+        {currentRole === 'kasir' && (
+          <Button onClick={handleAdd}>
+            <Plus className="h-4 w-4 mr-2" />
+            Tambah Pelanggan
+          </Button>
+        )}
       </div>
 
       {sortedCustomers.length === 0 ? (
@@ -112,31 +118,34 @@ export const CustomerList = () => {
                   </p>
                 )}
 
-                <div className="flex gap-2 pt-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleEdit(customer);
-                    }}
-                    className="flex-1"
-                  >
-                    <Edit className="h-4 w-4 mr-1" />
-                    Edit
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDelete(customer.id);
-                    }}
-                    className="text-destructive hover:text-destructive"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
+                {/* Edit dan Delete buttons - hanya untuk kasir, supervisor hanya bisa lihat */}
+                {currentRole !== 'supervisor' && (
+                  <div className="flex gap-2 pt-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEdit(customer);
+                      }}
+                      className="flex-1"
+                    >
+                      <Edit className="h-4 w-4 mr-1" />
+                      Edit
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(customer.id);
+                      }}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
               </div>
             </Card>
           ))}
@@ -159,6 +168,7 @@ export const CustomerList = () => {
           onClose={() => setSelectedCustomer(null)}
           onEdit={handleEdit}
           onDelete={handleDelete}
+          currentRole={currentRole}
         />
       )}
     </div>

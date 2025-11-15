@@ -1,13 +1,30 @@
 import { Button } from "@/components/ui/button";
-import { LogOut, User } from "lucide-react";
+import { LogOut, User, ChevronDown } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useDashboardStore } from "../../store/useDashboardStore";
 import { format } from "date-fns";
 import { WashflowLogo } from "@/components/WashflowLogo";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+} from "@/components/ui/dropdown-menu";
+
+const roleLabels: Record<string, string> = {
+  kasir: 'Kasir',
+  supervisor: 'Supervisor',
+  owner: 'Owner',
+};
 
 export const DashboardHeader = () => {
   const orders = useDashboardStore((state) => state.orders);
   const customers = useDashboardStore((state) => state.customers);
+  const currentRole = useDashboardStore((state) => state.currentRole);
+  const setCurrentRole = useDashboardStore((state) => state.setCurrentRole);
   
   // Calculate today's stats
   const today = new Date().toISOString().split('T')[0];
@@ -38,12 +55,35 @@ export const DashboardHeader = () => {
         
         <div className="flex items-center gap-4">
           <div className="hidden sm:flex items-center gap-3 text-sm">
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-secondary rounded-lg">
-              <User className="h-4 w-4 text-muted-foreground" />
-              <span className="font-medium">Admin User</span>
-              <span className="text-muted-foreground">•</span>
-              <span className="text-xs text-muted-foreground">Super Admin</span>
-            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  className="flex items-center gap-2 px-3 py-1.5 bg-secondary rounded-lg hover:bg-secondary/80"
+                >
+                  <User className="h-4 w-4 text-muted-foreground" />
+                  <span className="font-medium">Admin User</span>
+                  <span className="text-muted-foreground">•</span>
+                  <span className="text-xs text-muted-foreground">{roleLabels[currentRole] || currentRole}</span>
+                  <ChevronDown className="h-3 w-3 ml-1 text-muted-foreground" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuLabel>Pilih Role</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuRadioGroup value={currentRole} onValueChange={(value) => setCurrentRole(value as 'kasir' | 'supervisor' | 'owner')}>
+                  <DropdownMenuRadioItem value="kasir">
+                    Kasir
+                  </DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="supervisor">
+                    Supervisor
+                  </DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="owner">
+                    Owner
+                  </DropdownMenuRadioItem>
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
           <Button variant="outline" size="sm" asChild>
             <Link to="/">
