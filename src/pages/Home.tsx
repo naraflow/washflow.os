@@ -9,7 +9,7 @@ import { Users, TrendingUp, Shield, Zap, Clock, Menu, X } from "lucide-react";
 import { WashflowLogo } from "@/components/WashflowLogo";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
-import heroImage from "@/assets/hero-home.png";
+import heroImage from "@/assets/hero-home.webp";
 
 const Home = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
