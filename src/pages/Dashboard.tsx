@@ -28,6 +28,9 @@ import { PackingView } from "./dashboard/components/workflow/PackingView";
 import { ReadyView } from "./dashboard/components/workflow/ReadyView";
 import { useDashboardStore } from "./dashboard/store/useDashboardStore";
 import { useMachineTimer } from "./dashboard/hooks/useMachineTimer";
+import { useMemo } from "react";
+import { Badge } from "@/components/ui/badge";
+import type { WorkflowStage } from "./dashboard/types/workflow";
 
 const Dashboard = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -39,9 +42,41 @@ const Dashboard = () => {
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
   const setSelectedTab = useDashboardStore((state) => state.setSelectedTab);
   const selectedTab = useDashboardStore((state) => state.selectedTab);
+  const orders = useDashboardStore((state) => state.orders);
   
   // Start machine timer updates
   useMachineTimer();
+
+  // Calculate order counts per stage
+  const stageCounts = useMemo(() => {
+    const counts: Record<string, number> = {
+      'workflow-overview': 0, // Overview doesn't need count
+      'reception': 0,
+      'sorting': 0,
+      'washing': 0,
+      'drying': 0,
+      'ironing': 0,
+      'packing': 0,
+      'ready': 0,
+      'pickup-delivery': 0,
+    };
+
+    orders.forEach((order) => {
+      const currentStage = order.currentStage || 'reception';
+      
+      // Map stage to tab value
+      if (currentStage === 'reception') counts['reception']++;
+      else if (currentStage === 'sorting') counts['sorting']++;
+      else if (currentStage === 'washing') counts['washing']++;
+      else if (currentStage === 'drying') counts['drying']++;
+      else if (currentStage === 'ironing') counts['ironing']++;
+      else if (currentStage === 'packing') counts['packing']++;
+      else if (currentStage === 'ready') counts['ready']++;
+      else if (currentStage === 'picked') counts['pickup-delivery']++;
+    });
+
+    return counts;
+  }, [orders]);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -247,15 +282,124 @@ const Dashboard = () => {
               <div className="h-px flex-1 bg-border"></div>
             </div>
             <TabsList className="grid w-full grid-cols-2 lg:grid-cols-9 lg:w-auto gap-2 p-2 bg-transparent">
-              <TabsTrigger value="workflow-overview" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors">Overview</TabsTrigger>
-              <TabsTrigger value="reception" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors">Order</TabsTrigger>
-              <TabsTrigger value="sorting" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors">Sorting</TabsTrigger>
-              <TabsTrigger value="washing" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors">Washing</TabsTrigger>
-              <TabsTrigger value="drying" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors">Drying</TabsTrigger>
-              <TabsTrigger value="ironing" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors">Ironing</TabsTrigger>
-              <TabsTrigger value="packing" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors">Packing</TabsTrigger>
-              <TabsTrigger value="ready" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors">Ready</TabsTrigger>
-              <TabsTrigger value="pickup-delivery" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors">Pickup/Delivery</TabsTrigger>
+              <TabsTrigger 
+                value="workflow-overview" 
+                className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors relative"
+              >
+                Overview
+              </TabsTrigger>
+              <TabsTrigger 
+                value="reception" 
+                className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors relative"
+              >
+                Order
+                {stageCounts['reception'] > 0 && (
+                  <Badge 
+                    variant="default" 
+                    className="ml-2 h-5 min-w-5 px-1.5 text-xs flex items-center justify-center bg-primary text-primary-foreground"
+                  >
+                    {stageCounts['reception']}
+                  </Badge>
+                )}
+              </TabsTrigger>
+              <TabsTrigger 
+                value="sorting" 
+                className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors relative"
+              >
+                Sorting
+                {stageCounts['sorting'] > 0 && (
+                  <Badge 
+                    variant="default" 
+                    className="ml-2 h-5 min-w-5 px-1.5 text-xs flex items-center justify-center bg-primary text-primary-foreground"
+                  >
+                    {stageCounts['sorting']}
+                  </Badge>
+                )}
+              </TabsTrigger>
+              <TabsTrigger 
+                value="washing" 
+                className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors relative"
+              >
+                Washing
+                {stageCounts['washing'] > 0 && (
+                  <Badge 
+                    variant="default" 
+                    className="ml-2 h-5 min-w-5 px-1.5 text-xs flex items-center justify-center bg-primary text-primary-foreground"
+                  >
+                    {stageCounts['washing']}
+                  </Badge>
+                )}
+              </TabsTrigger>
+              <TabsTrigger 
+                value="drying" 
+                className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors relative"
+              >
+                Drying
+                {stageCounts['drying'] > 0 && (
+                  <Badge 
+                    variant="default" 
+                    className="ml-2 h-5 min-w-5 px-1.5 text-xs flex items-center justify-center bg-primary text-primary-foreground"
+                  >
+                    {stageCounts['drying']}
+                  </Badge>
+                )}
+              </TabsTrigger>
+              <TabsTrigger 
+                value="ironing" 
+                className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors relative"
+              >
+                Ironing
+                {stageCounts['ironing'] > 0 && (
+                  <Badge 
+                    variant="default" 
+                    className="ml-2 h-5 min-w-5 px-1.5 text-xs flex items-center justify-center bg-primary text-primary-foreground"
+                  >
+                    {stageCounts['ironing']}
+                  </Badge>
+                )}
+              </TabsTrigger>
+              <TabsTrigger 
+                value="packing" 
+                className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors relative"
+              >
+                Packing
+                {stageCounts['packing'] > 0 && (
+                  <Badge 
+                    variant="default" 
+                    className="ml-2 h-5 min-w-5 px-1.5 text-xs flex items-center justify-center bg-primary text-primary-foreground"
+                  >
+                    {stageCounts['packing']}
+                  </Badge>
+                )}
+              </TabsTrigger>
+              <TabsTrigger 
+                value="ready" 
+                className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors relative"
+              >
+                Ready
+                {stageCounts['ready'] > 0 && (
+                  <Badge 
+                    variant="default" 
+                    className="ml-2 h-5 min-w-5 px-1.5 text-xs flex items-center justify-center bg-primary text-primary-foreground"
+                  >
+                    {stageCounts['ready']}
+                  </Badge>
+                )}
+              </TabsTrigger>
+              <TabsTrigger 
+                value="pickup-delivery" 
+                className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors relative"
+              >
+                Pickup/Delivery
+                {stageCounts['pickup-delivery'] > 0 && (
+                  <Badge 
+                    variant="default" 
+                    className="ml-2 h-5 min-w-5 px-1.5 text-xs flex items-center justify-center bg-primary text-primary-foreground"
+                  >
+                    {stageCounts['pickup-delivery']}
+                  </Badge>
+                )}
+              </TabsTrigger>
             </TabsList>
           </div>
 
