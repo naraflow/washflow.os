@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import type { Order, Customer, Service } from '../../pages/dashboard/types';
+import type { Order, Customer, Service } from '../pages/dashboard/types';
 
 // Helper functions to sync with Supabase
 
