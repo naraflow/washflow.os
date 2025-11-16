@@ -19,13 +19,17 @@ import { MachineList } from "./dashboard/components/machines/MachineList";
 import { OutletForm } from "./dashboard/components/outlets/OutletForm";
 import { OrderModal } from "./dashboard/components/orders/OrderModal";
 import { WorkflowOverview } from "./dashboard/components/workflow/WorkflowOverview";
-import { ReceptionView } from "./dashboard/components/workflow/ReceptionView";
 import { SortingView } from "./dashboard/components/workflow/SortingView";
 import { WashingView } from "./dashboard/components/workflow/WashingView";
 import { DryingView } from "./dashboard/components/workflow/DryingView";
 import { IronView } from "./dashboard/components/workflow/IronView";
 import { PackingView } from "./dashboard/components/workflow/PackingView";
 import { ReadyView } from "./dashboard/components/workflow/ReadyView";
+import { TaggingView } from "./dashboard/components/orders/TaggingView";
+import { OutletTaggingView } from "./dashboard/components/workflow-outlet/OutletTaggingView";
+import { OutletSortingView } from "./dashboard/components/workflow-outlet/OutletSortingView";
+import { SendToCentralView } from "./dashboard/components/workflow-outlet/SendToCentralView";
+import { ReceiveFromOutletView } from "./dashboard/components/workflow-produksi/ReceiveFromOutletView";
 import { useDashboardStore } from "./dashboard/store/useDashboardStore";
 import { useMachineTimer } from "./dashboard/hooks/useMachineTimer";
 import { useMemo } from "react";
@@ -55,15 +59,28 @@ const Dashboard = () => {
       setSelectedTab('orders');
     } else if (currentRole === 'owner') {
       setSelectedTab('reports');
+    } else if (currentRole === 'supervisor-outlet') {
+      // Check if there are pending tagging orders
+      const pendingTagging = orders.filter(
+        (o) => o.taggingRequired && o.taggingStatus === 'pending'
+      );
+      setSelectedTab(pendingTagging.length > 0 ? 'outlet-tagging' : 'outlet-tagging');
+    } else if (currentRole === 'supervisor-produksi') {
+      setSelectedTab('receive-from-outlet');
     } else if (currentRole === 'supervisor') {
-      setSelectedTab('workflow-overview');
+      // Legacy supervisor - backward compatibility
+      const pendingTagging = orders.filter(
+        (o) => o.taggingRequired && o.taggingStatus === 'pending'
+      );
+      setSelectedTab(pendingTagging.length > 0 ? 'tagging' : 'workflow-overview');
     }
-  }, [currentRole, setSelectedTab]);
+  }, [currentRole, setSelectedTab, orders]);
 
   // Calculate order counts per stage
   const stageCounts = useMemo(() => {
     const counts: Record<string, number> = {
       'workflow-overview': 0, // Overview doesn't need count
+      'tagging': 0, // Tagging pending orders
       'reception': 0,
       'sorting': 0,
       'washing': 0,
@@ -75,31 +92,58 @@ const Dashboard = () => {
     };
 
     orders.forEach((order) => {
+      // Count pending tagging orders (only if not yet tagged)
+      if (order.taggingRequired && order.taggingStatus === 'pending') {
+        counts['tagging']++;
+      }
+      
       const currentStage = order.currentStage || 'reception';
       
       // Map stage to tab value
-      if (currentStage === 'reception') counts['reception']++;
-      else if (currentStage === 'sorting') counts['sorting']++;
+      // Note: 'reception' stage is for admin/kasir only, supervisor starts from tagging
+      // After tagging, order goes directly to sorting
+      if (currentStage === 'reception') {
+        // Reception stage is only counted for admin view, not supervisor workflow
+        counts['reception']++;
+      } else if (currentStage === 'sorting') counts['sorting']++;
       else if (currentStage === 'washing') counts['washing']++;
       else if (currentStage === 'drying') counts['drying']++;
       else if (currentStage === 'ironing') counts['ironing']++;
       else if (currentStage === 'packing') counts['packing']++;
-      else if (currentStage === 'ready') counts['ready']++;
-      else if (currentStage === 'picked') counts['pickup-delivery']++;
+      else if (currentStage === 'ready') {
+        counts['ready']++;
+        // Also count for pickup-delivery badge (orders ready for pickup)
+        if (order.status !== 'completed') {
+          counts['pickup-delivery']++;
+        }
+      }
+      // Count orders in 'picked' stage but not yet completed (in transit)
+      else if (currentStage === 'picked' && order.status !== 'completed') {
+        counts['pickup-delivery']++;
+      }
     });
 
     return counts;
   }, [orders]);
 
   // Role-based permissions
-  // Kasir: create order, history order, tambah customer
-  // Supervisor: keseluruhan (semua fitur)
+  // Admin (Kasir): hanya create order, history order, tambah customer - TIDAK menangani barang fisik
+  // Supervisor Outlet: Tagging, Outlet Sorting, Send to Central, Received from Central, Ready, Delivery
+  // Supervisor Produksi: Receive from Outlet, Central Sorting, Washing, Drying, Ironing, QC, Packing, Send to Outlet
   // Owner: fokus ke laporan
-  const canAccessWorkflow = currentRole === 'supervisor';
-  const canAccessOrder = currentRole === 'kasir' || currentRole === 'supervisor';
-  const canAccessCustomers = currentRole === 'kasir' || currentRole === 'supervisor';
-  const canAccessServices = currentRole === 'supervisor';
-  const canAccessManagement = currentRole === 'supervisor';
+  
+  // Workflow access
+  const isSupervisorOutlet = currentRole === 'supervisor-outlet';
+  const isSupervisorProduksi = currentRole === 'supervisor-produksi';
+  const isSupervisorLegacy = currentRole === 'supervisor'; // Backward compatibility
+  const canAccessWorkflow = isSupervisorOutlet || isSupervisorProduksi || isSupervisorLegacy;
+  
+  // Other permissions
+  const canCreateOrder = currentRole === 'kasir'; // Hanya kasir (admin) yang bisa create order
+  const canAccessOrder = currentRole === 'kasir';
+  const canAccessCustomers = currentRole === 'kasir' || isSupervisorOutlet || isSupervisorProduksi || isSupervisorLegacy;
+  const canAccessServices = isSupervisorProduksi || isSupervisorLegacy; // Only production supervisor manages services
+  const canAccessManagement = isSupervisorProduksi || isSupervisorLegacy; // Only production supervisor manages machines/outlets
   const canAccessReports = currentRole === 'owner';
 
   const handleLogin = (e: React.FormEvent) => {
@@ -137,7 +181,7 @@ const Dashboard = () => {
       services,
       summary: {
         totalOrders: orders.length,
-        totalRevenue: orders.reduce((sum, o) => sum + o.totalAmount, 0),
+        totalRevenue: orders.reduce((sum, o) => sum + (o.totalAmount || 0), 0),
         totalCustomers: customers.length,
         exportDate: new Date().toISOString(),
       },
@@ -297,18 +341,137 @@ const Dashboard = () => {
             onNewOrder={() => setIsOrderModalOpen(true)}
           />
         )}
-        {currentRole === 'supervisor' && (
-          <div className="flex flex-wrap gap-2 mb-6">
-            <Button variant="outline" onClick={() => setSelectedTab('orders')} className="gap-2">
-              <ClipboardList className="h-4 w-4" />
-              Lihat Orders
-            </Button>
+        {(isSupervisorOutlet || isSupervisorProduksi || isSupervisorLegacy) && (
+          <div className="mb-6">
+            <Card className="p-4 bg-blue-50 border-blue-200">
+              <div className="flex items-center gap-3">
+                <div className="flex-1">
+                  <h3 className="font-semibold text-blue-900 mb-1">
+                    {isSupervisorOutlet ? 'Supervisor Outlet Dashboard' :
+                     isSupervisorProduksi ? 'Supervisor Produksi Dashboard' :
+                     'Supervisor Dashboard'}
+                  </h3>
+                  <p className="text-sm text-blue-700">
+                    {isSupervisorOutlet ? 'Fokus pada operasional outlet: Tagging, Outlet Sorting, Send to Central, Received from Central, Ready, Delivery.' :
+                     isSupervisorProduksi ? 'Fokus pada operasional produksi: Receive from Outlet, Central Sorting, Washing, Drying, Ironing, QC, Packing, Send to Outlet.' :
+                     'Fokus pada operasional: Tagging RFID, Sorting, Washing, Drying, Ironing, QC, Packing, dan Ready.'}
+                  </p>
+                </div>
+              </div>
+            </Card>
           </div>
         )}
 
         <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
-          {/* Workflow Section - hanya untuk supervisor dan owner */}
-          {canAccessWorkflow && (
+          {/* Workflow Section - Supervisor Outlet */}
+          {isSupervisorOutlet && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="h-px flex-1 bg-border"></div>
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2">
+                  Supervisor Outlet Workflow
+                </span>
+                <div className="h-px flex-1 bg-border"></div>
+              </div>
+              <TabsList className="grid w-full grid-cols-2 lg:grid-cols-6 lg:w-auto gap-2 p-2 bg-transparent">
+                <TabsTrigger value="outlet-tagging" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors relative">
+                  Tagging
+                  {stageCounts['tagging'] > 0 && (
+                    <Badge variant="default" className="ml-2 h-5 min-w-5 px-1.5 text-xs flex items-center justify-center bg-primary text-primary-foreground">
+                      {stageCounts['tagging']}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="outlet-sorting" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors">
+                  Outlet Sorting
+                </TabsTrigger>
+                <TabsTrigger value="send-to-central" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors">
+                  Send to Central
+                </TabsTrigger>
+                <TabsTrigger value="received-from-central" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors">
+                  Received from Central
+                </TabsTrigger>
+                <TabsTrigger value="outlet-ready" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors relative">
+                  Ready
+                  {stageCounts['ready'] > 0 && (
+                    <Badge variant="default" className="ml-2 h-5 min-w-5 px-1.5 text-xs flex items-center justify-center bg-primary text-primary-foreground">
+                      {stageCounts['ready']}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="delivery" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors relative">
+                  Delivery/Pick Up
+                  {stageCounts['pickup-delivery'] > 0 && (
+                    <Badge variant="default" className="ml-2 h-5 min-w-5 px-1.5 text-xs flex items-center justify-center bg-primary text-primary-foreground">
+                      {stageCounts['pickup-delivery']}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+              </TabsList>
+            </div>
+          )}
+
+          {/* Workflow Section - Supervisor Produksi */}
+          {isSupervisorProduksi && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="h-px flex-1 bg-border"></div>
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2">
+                  Supervisor Produksi Workflow
+                </span>
+                <div className="h-px flex-1 bg-border"></div>
+              </div>
+              <TabsList className="grid w-full grid-cols-2 lg:grid-cols-8 lg:w-auto gap-2 p-2 bg-transparent">
+                <TabsTrigger value="receive-from-outlet" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors">
+                  Receive from Outlet
+                </TabsTrigger>
+                <TabsTrigger value="central-sorting" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors">
+                  Central Sorting
+                </TabsTrigger>
+                <TabsTrigger value="washing" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors relative">
+                  Washing
+                  {stageCounts['washing'] > 0 && (
+                    <Badge variant="default" className="ml-2 h-5 min-w-5 px-1.5 text-xs flex items-center justify-center bg-primary text-primary-foreground">
+                      {stageCounts['washing']}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="drying" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors relative">
+                  Drying
+                  {stageCounts['drying'] > 0 && (
+                    <Badge variant="default" className="ml-2 h-5 min-w-5 px-1.5 text-xs flex items-center justify-center bg-primary text-primary-foreground">
+                      {stageCounts['drying']}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="ironing" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors relative">
+                  Ironing
+                  {stageCounts['ironing'] > 0 && (
+                    <Badge variant="default" className="ml-2 h-5 min-w-5 px-1.5 text-xs flex items-center justify-center bg-primary text-primary-foreground">
+                      {stageCounts['ironing']}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="qc" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors">
+                  QC
+                </TabsTrigger>
+                <TabsTrigger value="packing" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors relative">
+                  Packing
+                  {stageCounts['packing'] > 0 && (
+                    <Badge variant="default" className="ml-2 h-5 min-w-5 px-1.5 text-xs flex items-center justify-center bg-primary text-primary-foreground">
+                      {stageCounts['packing']}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="send-to-outlet" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors">
+                  Send to Outlet
+                </TabsTrigger>
+              </TabsList>
+            </div>
+          )}
+
+          {/* Workflow Section - Legacy Supervisor (Backward Compatibility) */}
+          {isSupervisorLegacy && (
             <div className="space-y-3">
               <div className="flex items-center gap-3">
                 <div className="h-px flex-1 bg-border"></div>
@@ -325,16 +488,16 @@ const Dashboard = () => {
                   Overview
                 </TabsTrigger>
                 <TabsTrigger 
-                  value="reception" 
+                  value="tagging" 
                   className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors relative"
                 >
-                  Order
-                  {stageCounts['reception'] > 0 && (
+                  Tagging
+                  {stageCounts['tagging'] > 0 && (
                     <Badge 
                       variant="default" 
                       className="ml-2 h-5 min-w-5 px-1.5 text-xs flex items-center justify-center bg-primary text-primary-foreground"
                     >
-                      {stageCounts['reception']}
+                      {stageCounts['tagging']}
                     </Badge>
                   )}
                 </TabsTrigger>
@@ -499,8 +662,8 @@ const Dashboard = () => {
             </div>
           )}
 
-          {/* Order Tab - untuk kasir dan supervisor (history order) */}
-          {(currentRole === 'kasir' || currentRole === 'supervisor') && (
+          {/* Order Tab - hanya untuk kasir/admin (create & manage orders) */}
+          {currentRole === 'kasir' && (
             <div className="space-y-3">
               <div className="flex items-center gap-3">
                 <div className="h-px flex-1 bg-border"></div>
@@ -517,15 +680,96 @@ const Dashboard = () => {
             </div>
           )}
 
-          {/* TabsContent - Conditional rendering */}
-          {canAccessWorkflow && (
+          {/* TabsContent - Supervisor Outlet */}
+          {isSupervisorOutlet && (
+            <>
+              <TabsContent value="outlet-tagging" className="space-y-4">
+                <OutletTaggingView />
+              </TabsContent>
+
+              <TabsContent value="outlet-sorting" className="space-y-4">
+                <OutletSortingView />
+              </TabsContent>
+
+              <TabsContent value="send-to-central" className="space-y-4">
+                <SendToCentralView />
+              </TabsContent>
+
+              <TabsContent value="received-from-central" className="space-y-4">
+                <Card className="p-6">
+                  <h3 className="text-lg font-semibold mb-4">Received from Central</h3>
+                  <p className="text-muted-foreground">
+                    Fitur ini akan segera tersedia. Di sini Anda dapat menerima barang yang sudah diproses dari central facility.
+                  </p>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="outlet-ready" className="space-y-4">
+                <ReadyView />
+              </TabsContent>
+
+              <TabsContent value="delivery" className="space-y-4">
+                <PickupDeliveryList />
+              </TabsContent>
+            </>
+          )}
+
+          {/* TabsContent - Supervisor Produksi */}
+          {isSupervisorProduksi && (
+            <>
+              <TabsContent value="receive-from-outlet" className="space-y-4">
+                <ReceiveFromOutletView />
+              </TabsContent>
+
+              <TabsContent value="central-sorting" className="space-y-4">
+                <SortingView />
+              </TabsContent>
+
+              <TabsContent value="washing" className="space-y-4">
+                <WashingView />
+              </TabsContent>
+
+              <TabsContent value="drying" className="space-y-4">
+                <DryingView />
+              </TabsContent>
+
+              <TabsContent value="ironing" className="space-y-4">
+                <IronView />
+              </TabsContent>
+
+              <TabsContent value="qc" className="space-y-4">
+                <Card className="p-6">
+                  <h3 className="text-lg font-semibold mb-4">Quality Control</h3>
+                  <p className="text-muted-foreground">
+                    Fitur QC akan segera tersedia. Di sini Anda dapat melakukan quality control sebelum packing.
+                  </p>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="packing" className="space-y-4">
+                <PackingView />
+              </TabsContent>
+
+              <TabsContent value="send-to-outlet" className="space-y-4">
+                <Card className="p-6">
+                  <h3 className="text-lg font-semibold mb-4">Send to Outlet</h3>
+                  <p className="text-muted-foreground">
+                    Fitur ini akan segera tersedia. Di sini Anda dapat mengirim barang yang sudah selesai diproses kembali ke outlet.
+                  </p>
+                </Card>
+              </TabsContent>
+            </>
+          )}
+
+          {/* TabsContent - Legacy Supervisor (Backward Compatibility) */}
+          {isSupervisorLegacy && (
             <>
               <TabsContent value="workflow-overview" className="space-y-4">
                 <WorkflowOverview />
               </TabsContent>
 
-              <TabsContent value="reception" className="space-y-4">
-                <ReceptionView />
+              <TabsContent value="tagging" className="space-y-4">
+                <TaggingView />
               </TabsContent>
 
               <TabsContent value="sorting" className="space-y-4">
@@ -558,8 +802,8 @@ const Dashboard = () => {
             </>
           )}
 
-          {/* Order Content - untuk kasir dan supervisor (view only) */}
-          {(currentRole === 'kasir' || currentRole === 'supervisor') && (
+          {/* Order Content - hanya untuk kasir/admin (create & manage orders) */}
+          {currentRole === 'kasir' && (
           <TabsContent value="orders" className="space-y-4">
             <OrderList />
           </TabsContent>
@@ -639,7 +883,7 @@ const Dashboard = () => {
                     Rp{" "}
                     {useDashboardStore
                       .getState()
-                      .orders.reduce((sum, o) => sum + o.totalAmount, 0)
+                      .orders.reduce((sum, o) => sum + (o.totalAmount || 0), 0)
                       .toLocaleString("id-ID")}
                   </span>
                 </div>

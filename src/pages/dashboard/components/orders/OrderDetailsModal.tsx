@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Edit, Trash2, Printer } from "lucide-react";
 import type { Order } from "../../types";
 import { format } from "date-fns";
+import { getOrderStatusFromWorkflow, getStatusColor, getStatusLabel } from "../../utils/orderStatus";
 
 interface OrderDetailsModalProps {
   order: Order;
@@ -13,40 +14,6 @@ interface OrderDetailsModalProps {
   onPrint: () => void;
 }
 
-const getStatusColor = (status: Order["status"]) => {
-  switch (status) {
-    case "pending":
-      return "bg-yellow-100 text-yellow-800 border-yellow-200";
-    case "processing":
-      return "bg-blue-100 text-blue-800 border-blue-200";
-    case "ready":
-      return "bg-green-100 text-green-800 border-green-200";
-    case "completed":
-      return "bg-gray-100 text-gray-800 border-gray-200";
-    case "cancelled":
-      return "bg-red-100 text-red-800 border-red-200";
-    default:
-      return "bg-gray-100 text-gray-800 border-gray-200";
-  }
-};
-
-const getStatusLabel = (status: Order["status"]) => {
-  switch (status) {
-    case "pending":
-      return "Menunggu";
-    case "processing":
-      return "Diproses";
-    case "ready":
-      return "Siap";
-    case "completed":
-      return "Selesai";
-    case "cancelled":
-      return "Dibatalkan";
-    default:
-      return status;
-  }
-};
-
 export const OrderDetailsModal = ({
   order,
   onClose,
@@ -54,14 +21,17 @@ export const OrderDetailsModal = ({
   onDelete,
   onPrint,
 }: OrderDetailsModalProps) => {
+  // Get dynamic status based on workflow
+  const dynamicStatus = getOrderStatusFromWorkflow(order);
+  
   return (
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             Detail Order #{order.id}
-            <Badge className={getStatusColor(order.status)}>
-              {getStatusLabel(order.status)}
+            <Badge className={getStatusColor(dynamicStatus)}>
+              {getStatusLabel(dynamicStatus)}
             </Badge>
           </DialogTitle>
         </DialogHeader>
@@ -96,27 +66,27 @@ export const OrderDetailsModal = ({
             <div className="space-y-1 text-sm">
               <div className="flex justify-between">
                 <span>Harga per kg:</span>
-                <span>Rp {order.unitPrice.toLocaleString("id-ID")}</span>
+                <span>Rp {(order.unitPrice || 0).toLocaleString("id-ID")}</span>
               </div>
               <div className="flex justify-between">
                 <span>Subtotal:</span>
-                <span>Rp {order.subtotal.toLocaleString("id-ID")}</span>
+                <span>Rp {(order.subtotal || 0).toLocaleString("id-ID")}</span>
               </div>
-              {order.discount > 0 && (
+              {(order.discount || 0) > 0 && (
                 <div className="flex justify-between text-green-600">
                   <span>Diskon:</span>
-                  <span>-Rp {order.discount.toLocaleString("id-ID")}</span>
+                  <span>-Rp {(order.discount || 0).toLocaleString("id-ID")}</span>
                 </div>
               )}
-              {order.surcharge > 0 && (
+              {(order.surcharge || 0) > 0 && (
                 <div className="flex justify-between">
                   <span>Tambahan:</span>
-                  <span>+Rp {order.surcharge.toLocaleString("id-ID")}</span>
+                  <span>+Rp {(order.surcharge || 0).toLocaleString("id-ID")}</span>
                 </div>
               )}
               <div className="border-t pt-1 mt-1 flex justify-between font-bold">
                 <span>Total:</span>
-                <span className="text-primary">Rp {order.totalAmount.toLocaleString("id-ID")}</span>
+                <span className="text-primary">Rp {(order.totalAmount || 0).toLocaleString("id-ID")}</span>
               </div>
             </div>
           </div>

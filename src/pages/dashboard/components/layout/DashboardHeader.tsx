@@ -16,7 +16,9 @@ import {
 
 const roleLabels: Record<string, string> = {
   kasir: 'Kasir',
-  supervisor: 'Supervisor',
+  supervisor: 'Supervisor (Legacy)',
+  'supervisor-outlet': 'Supervisor Outlet',
+  'supervisor-produksi': 'Supervisor Produksi',
   owner: 'Owner',
 };
 
@@ -31,7 +33,7 @@ export const DashboardHeader = () => {
   const todayOrders = orders.filter(
     (o) => o.createdAt.split('T')[0] === today
   );
-  const todayRevenue = todayOrders.reduce((sum, o) => sum + o.totalAmount, 0);
+  const todayRevenue = todayOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background shadow-sm">
@@ -71,12 +73,18 @@ export const DashboardHeader = () => {
               <DropdownMenuContent align="end" className="w-48">
                 <DropdownMenuLabel>Pilih Role</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuRadioGroup value={currentRole} onValueChange={(value) => setCurrentRole(value as 'kasir' | 'supervisor' | 'owner')}>
+                <DropdownMenuRadioGroup value={currentRole} onValueChange={(value) => setCurrentRole(value as 'kasir' | 'supervisor' | 'supervisor-outlet' | 'supervisor-produksi' | 'owner')}>
                   <DropdownMenuRadioItem value="kasir">
                     Kasir
                   </DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="supervisor-outlet">
+                    Supervisor Outlet
+                  </DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="supervisor-produksi">
+                    Supervisor Produksi
+                  </DropdownMenuRadioItem>
                   <DropdownMenuRadioItem value="supervisor">
-                    Supervisor
+                    Supervisor (Legacy)
                   </DropdownMenuRadioItem>
                   <DropdownMenuRadioItem value="owner">
                     Owner

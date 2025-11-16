@@ -58,7 +58,7 @@ export const ReadyView = () => {
                 <div>
                   <Badge variant="outline">{order.serviceName || 'Service'}</Badge>
                   <div className="text-sm mt-1">
-                    {order.weight} kg • Rp {order.totalAmount.toLocaleString('id-ID')}
+                    {order.weight} kg • Rp {(order.totalAmount || 0).toLocaleString('id-ID')}
                   </div>
                 </div>
 

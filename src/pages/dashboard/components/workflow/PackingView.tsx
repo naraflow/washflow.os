@@ -34,6 +34,7 @@ export const PackingView = () => {
 
     updateOrder(orderId, {
       currentStage: 'ready',
+      status: 'ready', // Update status to ready
       completedStages: [
         ...(order.completedStages || []),
         'packing',
@@ -74,7 +75,7 @@ export const PackingView = () => {
                 <div>
                   <Badge variant="outline">{order.service?.name}</Badge>
                   <div className="text-sm mt-1">
-                    {order.weight} kg • Rp {order.totalAmount.toLocaleString('id-ID')}
+                    {order.weight} kg • Rp {(order.totalAmount || 0).toLocaleString('id-ID')}
                   </div>
                 </div>
 

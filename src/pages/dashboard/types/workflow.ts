@@ -4,6 +4,9 @@ import type { Service } from './index';
 export type WorkflowStage = 
   | 'reception' 
   | 'sorting' 
+  | 'outlet-sorting-complete' // After outlet sorting is finalized
+  | 'in-transit-to-central' // In transit to central facility
+  | 'received-at-central' // Received at central facility
   | 'washing' 
   | 'drying' 
   | 'ironing' 

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Order, Customer, Service, PickupDelivery, Machine, User, Staff, Attendance, LaundryItem, QualityControl, Outlet } from '../types';
+import type { Order, Customer, Service, PickupDelivery, Machine, User, Staff, Attendance, LaundryItem, QualityControl, Outlet, SortingBag } from '../types';
 
 interface DashboardStore {
   // Orders
@@ -70,13 +70,20 @@ interface DashboardStore {
   addQualityControl: (qc: QualityControl) => void;
   updateQualityControl: (id: string, qc: Partial<QualityControl>) => void;
   
+  // Sorting Bags
+  sortingBags: SortingBag[];
+  addSortingBag: (bag: SortingBag) => void;
+  updateSortingBag: (id: string, bag: Partial<SortingBag>) => void;
+  deleteSortingBag: (id: string) => void;
+  getSortingBag: (id: string) => SortingBag | undefined;
+  
   // UI State
   selectedTab: string;
   setSelectedTab: (tab: string) => void;
   selectedOutlet?: string;
   setSelectedOutlet: (outletId?: string) => void;
-  currentRole: 'kasir' | 'supervisor' | 'owner';
-  setCurrentRole: (role: 'kasir' | 'supervisor' | 'owner') => void;
+  currentRole: 'kasir' | 'supervisor' | 'supervisor-outlet' | 'supervisor-produksi' | 'owner';
+  setCurrentRole: (role: 'kasir' | 'supervisor' | 'supervisor-outlet' | 'supervisor-produksi' | 'owner') => void;
 }
 
 // Default services
@@ -142,15 +149,29 @@ export const useDashboardStore = create<DashboardStore>()(
       attendance: [],
       laundryItems: [],
       qualityControls: [],
+      sortingBags: [],
       selectedTab: 'orders',
       selectedOutlet: undefined,
-      currentRole: 'supervisor', // Default role
+      currentRole: 'supervisor-outlet', // Default role
       
       // Orders
       addOrder: (order) => set((state) => ({ orders: [...state.orders, order] })),
       updateOrder: (id, updates) =>
         set((state) => ({
-          orders: state.orders.map((o) => (o.id === id ? { ...o, ...updates } : o)),
+          orders: state.orders.map((o) => {
+            if (o.id === id) {
+              const updated = { ...o, ...updates };
+              // Auto-merge workflow logs if provided
+              if (updates.workflowLogs) {
+                updated.workflowLogs = [
+                  ...(o.workflowLogs || []),
+                  ...updates.workflowLogs,
+                ];
+              }
+              return updated;
+            }
+            return o;
+          }),
         })),
       deleteOrder: (id) =>
         set((state) => ({ orders: state.orders.filter((o) => o.id !== id) })),
@@ -268,6 +289,19 @@ export const useDashboardStore = create<DashboardStore>()(
         set((state) => ({
           qualityControls: state.qualityControls.map((q) => (q.id === id ? { ...q, ...updates } : q)),
         })),
+      
+      // Sorting Bags
+      addSortingBag: (bag) => set((state) => ({ sortingBags: [...state.sortingBags, bag] })),
+      updateSortingBag: (id, updates) =>
+        set((state) => ({
+          sortingBags: state.sortingBags.map((b) => (b.id === id ? { ...b, ...updates } : b)),
+        })),
+      deleteSortingBag: (id) =>
+        set((state) => ({ sortingBags: state.sortingBags.filter((b) => b.id !== id) })),
+      getSortingBag: (id) => {
+        const state = get();
+        return state.sortingBags.find((b) => b.id === id);
+      },
       
       // UI State
       setSelectedTab: (tab) => set({ selectedTab: tab }),

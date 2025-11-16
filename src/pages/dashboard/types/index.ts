@@ -1,16 +1,28 @@
 // Dashboard Types
 import type { WorkflowStage } from './workflow';
 
+export interface OrderServiceItem {
+  serviceId: string;
+  serviceName: string;
+  serviceType: 'regular' | 'wash_iron' | 'iron_only' | 'express' | 'dry_clean' | 'custom';
+  weight?: number;
+  quantity?: number;
+  unitPrice: number;
+  subtotal: number;
+}
+
 export interface Order {
   id: string;
   customerName: string;
   customerPhone: string;
-  serviceId: string;
-  serviceName?: string;
-  serviceType?: 'regular' | 'wash_iron' | 'iron_only' | 'express' | 'dry_clean' | 'custom'; // Store service type for workflow lookup
-  weight: number;
+  // Support both single service (backward compatible) and multi-service
+  serviceId?: string; // Deprecated: use services array instead
+  serviceName?: string; // Deprecated: use services array instead
+  serviceType?: 'regular' | 'wash_iron' | 'iron_only' | 'express' | 'dry_clean' | 'custom'; // Deprecated: use services array instead
+  services?: OrderServiceItem[]; // Multi-service support
+  weight?: number; // Deprecated: use services array instead
   quantity?: number;
-  unitPrice: number;
+  unitPrice?: number; // Deprecated: use services array instead
   subtotal: number;
   discount?: number;
   surcharge?: number;
@@ -35,6 +47,73 @@ export interface Order {
   estimatedCompletion?: string;
   // RFID tracking
   rfidTagId?: string;
+  // New features
+  initialConditionPhotos?: string[]; // Base64 encoded photos or URLs
+  membershipDiscount?: number; // Auto-calculated membership discount
+  estimatedCompletionTime?: string; // ISO timestamp
+  // Tagging workflow
+  taggingRequired?: boolean;
+  taggingStatus?: 'pending' | 'tagged' | 'lost' | 'replaced';
+  taggedBy?: string; // Supervisor name/ID
+  taggedAt?: string; // ISO timestamp
+  tagType?: 'rfid' | 'qr';
+  // Workflow logs for audit trail
+  workflowLogs?: WorkflowLog[];
+  // Sorting metadata
+  sortingMetadata?: SortingMetadata;
+}
+
+export interface WorkflowLog {
+  id: string;
+  orderId: string;
+  oldStep?: WorkflowStage;
+  newStep: WorkflowStage;
+  changedAt: string;
+  changedBy: string; // User/Staff name or ID
+  notes?: string;
+}
+
+// Sorting Bag/Container Management
+export interface SortingBag {
+  id: string;
+  bagNumber: string; // Bag #001, #002, etc.
+  bagName?: string; // Auto: BAG-OUTLET-A-001
+  status: 'filling' | 'ready' | 'sent' | 'in_transit'; // filling, ready for pickup, sent to central, in transit
+  priority?: 'express' | 'regular' | 'mixed'; // Bag priority type
+  items: string[]; // Order IDs in this bag
+  totalWeight: number;
+  expressCount: number;
+  regularCount: number;
+  maxCapacity?: number; // Max capacity in kg (default 7kg)
+  destination: 'central_main' | 'sub_facility';
+  outletId?: string; // Outlet ID for multi-outlet support
+  createdAt: string;
+  readyAt?: string;
+  sentAt?: string;
+  inTransitAt?: string;
+  qrCode?: string; // QR manifest code
+  manifestValidated?: boolean; // Whether manifest has been validated
+  handoverChecklist?: {
+    itemsScanned: boolean;
+    manifestScanned: boolean;
+    courierName?: string;
+    handoverTime?: string;
+    supervisorSignature?: string; // Optional digital signature
+  };
+  notes?: string;
+}
+
+// Sorting Status for Orders - Updated to match workflow specification
+export type SortingStatus = 'pending_sorting' | 'in_sorting' | 'sorted' | 'in_bag' | 'ready_for_central_pickup' | 'in_transit_central' | 'received_central';
+
+export interface SortingMetadata {
+  status: SortingStatus;
+  bagId?: string; // If assigned to a bag
+  sortedBy?: string; // Service type, priority, etc.
+  sortedAt?: string;
+  fabricType?: 'cotton' | 'wool' | 'delicate' | 'jeans' | 'mixed';
+  colorCategory?: 'white' | 'dark' | 'mixed';
+  machineAssignment?: string; // Machine ID for central facility
 }
 
 export interface Customer {
@@ -47,6 +126,15 @@ export interface Customer {
   totalSpent: number;
   lastOrderDate?: string;
   createdAt: string;
+  // Customer preferences and notes
+  notes?: string; // Alergi, preferensi parfum, dll
+  preferences?: {
+    preferredService?: string; // Service ID yang sering dipakai
+    preferredPaymentMethod?: 'cash' | 'transfer' | 'qris' | 'credit';
+    membershipTier?: 'regular' | 'silver' | 'gold' | 'platinum';
+    discountEligible?: boolean;
+    defaultDiscount?: number; // Default discount percentage or amount
+  };
 }
 
 export interface Service {
