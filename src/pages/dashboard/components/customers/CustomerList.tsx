@@ -10,7 +10,7 @@ import { CustomerModal } from "./CustomerModal";
 import { CustomerDetailsModal } from "./CustomerDetailsModal";
 
 interface CustomerListProps {
-  currentRole?: 'kasir' | 'supervisor' | 'owner';
+  currentRole?: 'kasir' | 'supervisor' | 'supervisor-outlet' | 'supervisor-produksi' | 'owner';
 }
 
 export const CustomerList = ({ currentRole }: CustomerListProps) => {
@@ -60,9 +60,13 @@ export const CustomerList = ({ currentRole }: CustomerListProps) => {
             className="pl-10"
           />
         </div>
-        {currentRole === 'kasir' && (
-          <Button onClick={handleAdd}>
-            <Plus className="h-4 w-4 mr-2" />
+        {(currentRole === 'kasir' || currentRole === 'supervisor-outlet' || currentRole === 'owner') && (
+          <Button 
+            onClick={handleAdd}
+            data-testid="add-customer-button"
+            className="gap-2"
+          >
+            <Plus className="h-4 w-4" />
             Tambah Pelanggan
           </Button>
         )}

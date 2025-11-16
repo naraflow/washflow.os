@@ -37,7 +37,6 @@ import { Badge } from "@/components/ui/badge";
 import type { WorkflowStage } from "./dashboard/types/workflow";
 
 const Dashboard = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -49,6 +48,8 @@ const Dashboard = () => {
   const orders = useDashboardStore((state) => state.orders);
   const currentRole = useDashboardStore((state) => state.currentRole);
   const setCurrentRole = useDashboardStore((state) => state.setCurrentRole);
+  const isLoggedIn = useDashboardStore((state) => state.isLoggedIn);
+  const setIsLoggedIn = useDashboardStore((state) => state.setIsLoggedIn);
   
   // Start machine timer updates
   useMachineTimer();
@@ -147,9 +148,18 @@ const Dashboard = () => {
   const canAccessManagement = isSupervisorLegacy; // Only legacy supervisor manages machines/outlets
   const canAccessReports = currentRole === 'owner';
 
+  // List of disabled users (in a real app, this would come from the database)
+  const disabledUsers = ['disableduser@example.com'];
+  
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (email && password) {
+      // Check if user is disabled
+      if (disabledUsers.includes(email.toLowerCase())) {
+        toast.error("Akun Anda telah dinonaktifkan. Silakan hubungi administrator.");
+        return;
+      }
+      
       setIsLoggedIn(true);
       toast.success("Login berhasil! Selamat datang di washflow.os Dashboard");
     } else {
@@ -164,6 +174,13 @@ const Dashboard = () => {
         toast.error("Password dan konfirmasi password tidak cocok");
         return;
       }
+      
+      // Check if user is disabled
+      if (disabledUsers.includes(email.toLowerCase())) {
+        toast.error("Email ini tidak dapat digunakan untuk registrasi.");
+        return;
+      }
+      
       setIsLoggedIn(true);
       toast.success("Registrasi berhasil! Selamat datang di washflow.os Dashboard");
     } else {
@@ -375,7 +392,12 @@ const Dashboard = () => {
                 <div className="h-px flex-1 bg-border"></div>
               </div>
               <TabsList className="grid w-full grid-cols-2 lg:grid-cols-6 lg:w-auto gap-2 p-2 bg-transparent">
-                <TabsTrigger value="outlet-tagging" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors relative">
+                <TabsTrigger 
+                  value="outlet-tagging" 
+                  className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors relative cursor-pointer"
+                  data-testid="outlet-tagging-tab"
+                  type="button"
+                >
                   Tagging
                   {stageCounts['tagging'] > 0 && (
                     <Badge variant="default" className="ml-2 h-5 min-w-5 px-1.5 text-xs flex items-center justify-center bg-primary text-primary-foreground">

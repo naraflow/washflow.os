@@ -27,6 +27,9 @@ export const SendToCentralView = () => {
   const [courierName, setCourierName] = useState('');
   const [itemsScanned, setItemsScanned] = useState(false);
   const [scannedItems, setScannedItems] = useState<Set<string>>(new Set());
+  const [bagQrScanned, setBagQrScanned] = useState<string | null>(null);
+  const [bagQrInput, setBagQrInput] = useState('');
+  const [manifestMismatch, setManifestMismatch] = useState<string | null>(null);
 
   // Get bags ready for pickup
   const readyBags = useMemo(() => {
@@ -35,6 +38,47 @@ export const SendToCentralView = () => {
       (bag.status === 'ready' || bag.status === 'in_transit')
     );
   }, [sortingBags]);
+
+  // Handle bag QR code scanning
+  const handleScanBagQR = (bagId: string) => {
+    const bag = sortingBags.find(b => b.id === bagId);
+    if (!bag) return;
+
+    // Check if QR code matches
+    if (!bag.qrCode) {
+      toast.error("Bag tidak memiliki QR code. Pastikan bag sudah di-finalize.");
+      return;
+    }
+
+    // Validate QR code format (should match bag QR code)
+    const expectedQr = bag.qrCode;
+    if (bagQrInput.trim() !== expectedQr) {
+      setManifestMismatch(`QR code tidak cocok. Diharapkan: ${expectedQr}`);
+      toast.error("QR code bag tidak cocok!");
+      return;
+    }
+
+    setBagQrScanned(bagId);
+    setManifestMismatch(null);
+    toast.success(`Bag QR code berhasil di-scan: ${bag.bagNumber}`);
+  };
+
+  // Validate manifest - check if all items in bag are present
+  const validateManifest = (bagId: string): { valid: boolean; missingItems: string[] } => {
+    const bag = sortingBags.find(b => b.id === bagId);
+    if (!bag) return { valid: false, missingItems: [] };
+
+    const bagOrders = orders.filter(o => bag.items.includes(o.id));
+    const scannedOrderIds = Array.from(scannedItems);
+    const missingItems = bagOrders
+      .filter(o => !scannedOrderIds.includes(o.id))
+      .map(o => o.id);
+
+    return {
+      valid: missingItems.length === 0,
+      missingItems
+    };
+  };
 
   const handleScanRFID = (orderId: string, bagId: string) => {
     const order = orders.find(o => o.id === orderId);
@@ -53,6 +97,14 @@ export const SendToCentralView = () => {
     newScannedItems.add(orderId);
     setScannedItems(newScannedItems);
 
+    // Validate manifest after scanning
+    const validation = validateManifest(bagId);
+    if (!validation.valid) {
+      setManifestMismatch(`Item yang belum di-scan: ${validation.missingItems.length} item`);
+    } else {
+      setManifestMismatch(null);
+    }
+
     // Check if all items in bag are scanned
     const bagOrders = orders.filter(o => bag.items.includes(o.id));
     if (newScannedItems.size === bagOrders.length) {
@@ -68,15 +120,20 @@ export const SendToCentralView = () => {
     const bag = sortingBags.find(b => b.id === bagId);
     if (!bag) return;
 
-    // Reset state
+    // Reset only dialog-specific state, preserve scanned items
     setCourierName('');
-    setItemsScanned(false);
-    setScannedItems(new Set());
+    setBagQrInput('');
+    setManifestMismatch(null);
     
-    // Check if items are already scanned
+    // Check if items are already scanned (don't reset scannedItems)
     const bagOrders = orders.filter(o => bag.items.includes(o.id));
     const allScanned = bagOrders.every(o => scannedItems.has(o.id));
     setItemsScanned(allScanned);
+    
+    // Check if bag QR was already scanned
+    if (bagQrScanned === bagId) {
+      setBagQrInput(bag.qrCode || '');
+    }
     
     setHandoverDialog(bagId);
   };
@@ -91,9 +148,23 @@ export const SendToCentralView = () => {
       return;
     }
 
+    // Validate manifest - check if all items are scanned
+    const validation = validateManifest(bagId);
+    if (!validation.valid) {
+      setManifestMismatch(`Manifest tidak cocok! ${validation.missingItems.length} item belum di-scan.`);
+      toast.error(`Manifest tidak cocok! ${validation.missingItems.length} item belum di-scan.`);
+      return;
+    }
+
     if (!itemsScanned) {
       toast.error("Scan semua item RFID terlebih dahulu");
       return;
+    }
+
+    // Optional: Validate bag QR if scanned
+    if (bagQrScanned !== bagId && bag.qrCode) {
+      // Warn but allow if QR not scanned
+      toast.warning("Bag QR code belum di-scan, tetapi melanjutkan handover...");
     }
 
     // Update bag status to in transit
@@ -102,29 +173,50 @@ export const SendToCentralView = () => {
       inTransitAt: new Date().toISOString(),
       handoverChecklist: {
         itemsScanned: true,
-        manifestScanned: false, // No longer required
+        manifestScanned: bagQrScanned === bagId,
         courierName: courierName.trim(),
         handoverTime: new Date().toISOString(),
       },
     });
     
-    // Update all orders in bag
+    // Update all orders in bag - mark as in transit to central
     bag.items.forEach(orderId => {
-      updateOrder(orderId, {
-        currentStage: 'in-transit-to-central',
-        sortingMetadata: {
-          status: 'in_transit_central',
-        },
-      });
+      const order = orders.find(o => o.id === orderId);
+      if (order) {
+        updateOrder(orderId, {
+          currentStage: 'in-transit-to-central',
+          sortingMetadata: {
+            status: 'in_transit_central',
+            bagId: bagId,
+            dispatchedAt: new Date().toISOString(),
+          },
+          // Add workflow log
+          workflowLogs: [
+            ...(order.workflowLogs || []),
+            {
+              id: `log-${Date.now()}`,
+              orderId: orderId,
+              oldStep: 'ready_for_central_pickup',
+              newStep: 'in-transit-to-central',
+              changedAt: new Date().toISOString(),
+              changedBy: 'Supervisor Outlet',
+              notes: `Bag ${bag.bagNumber} dispatched to central via courier: ${courierName.trim()}`,
+            },
+          ],
+        });
+      }
     });
     
-    toast.success(`Bag ${bag.bagNumber} handed over to courier: ${courierName}`);
+    toast.success(`Bag ${bag.bagNumber} berhasil dikirim ke Central via kurir: ${courierName.trim()}`);
     
     // Reset and close dialog
     setHandoverDialog(null);
     setCourierName('');
     setItemsScanned(false);
     setScannedItems(new Set());
+    setBagQrScanned(null);
+    setBagQrInput('');
+    setManifestMismatch(null);
   };
 
   const handlePrintBagLabel = (bagId: string) => {
@@ -521,6 +613,71 @@ export const SendToCentralView = () => {
                     </div>
                   </div>
 
+                  {/* Bag QR Scan Section */}
+                  {!isInTransit && bag.qrCode && (
+                    <div className="border-t pt-4 space-y-2">
+                      <Label>Scan Bag QR Code</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          value={bagQrInput}
+                          onChange={(e) => {
+                            setBagQrInput(e.target.value);
+                            setManifestMismatch(null);
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && bagQrInput.trim()) {
+                              handleScanBagQR(bag.id);
+                            }
+                          }}
+                          placeholder={bag.qrCode || "Scan bag QR code"}
+                          className="font-mono"
+                          data-testid="bag-qr-input"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => handleScanBagQR(bag.id)}
+                          disabled={!bagQrInput.trim()}
+                          data-testid="scan-bag-qr-button"
+                        >
+                          <QrCode className="h-4 w-4 mr-2" />
+                          Scan QR
+                        </Button>
+                      </div>
+                      {bagQrScanned === bag.id && (
+                        <p className="text-xs text-green-600 flex items-center gap-1">
+                          <CheckCircle2 className="h-3 w-3" />
+                          Bag QR code berhasil di-scan
+                        </p>
+                      )}
+                      {manifestMismatch && bagQrScanned !== bag.id && (
+                        <Alert variant="destructive">
+                          <AlertCircle className="h-4 w-4" />
+                          <AlertDescription className="text-xs">
+                            {manifestMismatch}
+                          </AlertDescription>
+                        </Alert>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Manifest Validation Warning */}
+                  {!isInTransit && (() => {
+                    const validation = validateManifest(bag.id);
+                    if (!validation.valid && scannedItems.size > 0) {
+                      return (
+                        <Alert variant="destructive">
+                          <AlertCircle className="h-4 w-4" />
+                          <AlertDescription>
+                            Manifest tidak cocok! {validation.missingItems.length} item belum di-scan.
+                            Tidak dapat mengirim bag sampai semua item di-scan.
+                          </AlertDescription>
+                        </Alert>
+                      );
+                    }
+                    return null;
+                  })()}
+
                   {/* Actions */}
                   <div className="flex gap-2 pt-4 border-t">
                     {!isInTransit && (
@@ -545,9 +702,10 @@ export const SendToCentralView = () => {
                           onClick={() => handleOpenHandover(bag.id)}
                           className="flex-1"
                           disabled={!allItemsScanned}
+                          data-testid="send-to-central-button"
                         >
                           <Truck className="h-4 w-4 mr-2" />
-                          Handover to Courier
+                          Send to Central
                         </Button>
                       </>
                     )}
@@ -587,6 +745,7 @@ export const SendToCentralView = () => {
             const bag = sortingBags.find(b => b.id === handoverDialog);
             const bagOrders = orders.filter(o => bag?.items.includes(o.id));
             const allScanned = bagOrders.every(o => scannedItems.has(o.id));
+            const validation = bag ? validateManifest(bag.id) : { valid: false, missingItems: [] };
             
             return (
               <div className="space-y-4">
@@ -596,8 +755,49 @@ export const SendToCentralView = () => {
                     value={courierName}
                     onChange={(e) => setCourierName(e.target.value)}
                     placeholder="Nama kurir"
+                    data-testid="courier-name-input"
+                    autoFocus
                   />
                 </div>
+
+                {/* Bag QR Scan in Dialog */}
+                {bag?.qrCode && (
+                  <div className="space-y-2">
+                    <Label>Scan Bag QR Code (Optional)</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        value={bagQrInput}
+                        onChange={(e) => {
+                          setBagQrInput(e.target.value);
+                          setManifestMismatch(null);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && bagQrInput.trim()) {
+                            handleScanBagQR(bag.id);
+                          }
+                        }}
+                        placeholder={bag.qrCode}
+                        className="font-mono"
+                        data-testid="bag-qr-input-dialog"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => handleScanBagQR(bag.id)}
+                        disabled={!bagQrInput.trim()}
+                        size="sm"
+                      >
+                        <QrCode className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    {bagQrScanned === bag.id && (
+                      <p className="text-xs text-green-600 flex items-center gap-1">
+                        <CheckCircle2 className="h-3 w-3" />
+                        Bag QR code berhasil di-scan
+                      </p>
+                    )}
+                  </div>
+                )}
 
                 <div className="space-y-3">
                   <div className="flex items-center space-x-2">
@@ -612,6 +812,17 @@ export const SendToCentralView = () => {
                   </div>
                   
                 </div>
+
+                {/* Manifest Validation Warning */}
+                {!validation.valid && (
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      <strong>Manifest tidak cocok!</strong> {validation.missingItems.length} item belum di-scan.
+                      Tidak dapat mengirim bag sampai semua item di-scan.
+                    </AlertDescription>
+                  </Alert>
+                )}
 
                 {bag && (
                   <Alert>
@@ -630,7 +841,8 @@ export const SendToCentralView = () => {
             </Button>
             <Button
               onClick={() => handoverDialog && handleHandover(handoverDialog)}
-              disabled={!courierName.trim() || !itemsScanned}
+              disabled={!courierName.trim() || !itemsScanned || (handoverDialog && !validateManifest(handoverDialog).valid)}
+              data-testid="confirm-handover-button"
             >
               <Truck className="h-4 w-4 mr-2" />
               Confirm Handover

@@ -330,26 +330,51 @@ export const OrderModal = ({ order, onClose }: OrderModalProps) => {
 
   const handleNext = () => {
     if (currentStep === 1) {
-      if (!formData.customerName || !formData.customerPhone || formData.services.length === 0) {
-        toast.error("Mohon lengkapi semua field yang diperlukan");
+      // Validate customer name
+      if (!formData.customerName || formData.customerName.trim() === "") {
+        toast.error("Nama pelanggan harus diisi");
+        return;
+      }
+      
+      // Validate customer phone
+      if (!formData.customerPhone || formData.customerPhone.trim() === "") {
+        toast.error("Nomor telepon pelanggan harus diisi");
+        return;
+      }
+      
+      // Validate services
+      if (formData.services.length === 0) {
+        toast.error("Minimal satu layanan harus ditambahkan");
         return;
       }
       
       // Validate all services
-      for (const service of formData.services) {
+      for (let i = 0; i < formData.services.length; i++) {
+        const service = formData.services[i];
         if (!service.serviceId) {
-          toast.error("Mohon pilih layanan untuk semua item");
+          toast.error(`Mohon pilih layanan untuk item ke-${i + 1}`);
           return;
         }
         const svc = services.find((s) => s.id === service.serviceId);
         if (svc) {
-          if (svc.unit === "kg" && !service.weight) {
-            toast.error("Mohon isi berat untuk layanan yang menggunakan kg");
-            return;
-          }
-          if (svc.unit !== "kg" && !service.quantity) {
-            toast.error("Mohon isi jumlah untuk layanan yang menggunakan piece/item");
-            return;
+          if (svc.unit === "kg") {
+            if (!service.weight || service.weight <= 0) {
+              toast.error(`Berat untuk layanan "${svc.name}" harus lebih dari 0`);
+              return;
+            }
+            if (isNaN(service.weight) || !isFinite(service.weight)) {
+              toast.error(`Berat untuk layanan "${svc.name}" harus berupa angka yang valid`);
+              return;
+            }
+          } else {
+            if (!service.quantity || service.quantity <= 0) {
+              toast.error(`Jumlah untuk layanan "${svc.name}" harus lebih dari 0`);
+              return;
+            }
+            if (isNaN(service.quantity) || !isFinite(service.quantity) || !Number.isInteger(service.quantity)) {
+              toast.error(`Jumlah untuk layanan "${svc.name}" harus berupa bilangan bulat yang valid`);
+              return;
+            }
           }
         }
       }
@@ -365,8 +390,64 @@ export const OrderModal = ({ order, onClose }: OrderModalProps) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.customerName || !formData.customerPhone || formData.services.length === 0) {
-      toast.error("Mohon lengkapi semua field yang diperlukan");
+    // Validate customer name
+    if (!formData.customerName || formData.customerName.trim() === "") {
+      toast.error("Nama pelanggan harus diisi");
+      return;
+    }
+    
+    // Validate customer phone
+    if (!formData.customerPhone || formData.customerPhone.trim() === "") {
+      toast.error("Nomor telepon pelanggan harus diisi");
+      return;
+    }
+    
+    // Validate services
+    if (formData.services.length === 0) {
+      toast.error("Minimal satu layanan harus ditambahkan");
+      return;
+    }
+    
+    // Validate all services with detailed error messages
+    for (let i = 0; i < formData.services.length; i++) {
+      const service = formData.services[i];
+      if (!service.serviceId) {
+        toast.error(`Mohon pilih layanan untuk item ke-${i + 1}`);
+        return;
+      }
+      const svc = services.find((s) => s.id === service.serviceId);
+      if (!svc) {
+        toast.error(`Layanan untuk item ke-${i + 1} tidak ditemukan`);
+        return;
+      }
+      if (svc.unit === "kg") {
+        if (!service.weight || service.weight <= 0) {
+          toast.error(`Berat untuk layanan "${svc.name}" harus lebih dari 0`);
+          return;
+        }
+        if (isNaN(service.weight) || !isFinite(service.weight)) {
+          toast.error(`Berat untuk layanan "${svc.name}" harus berupa angka yang valid`);
+          return;
+        }
+      } else {
+        if (!service.quantity || service.quantity <= 0) {
+          toast.error(`Jumlah untuk layanan "${svc.name}" harus lebih dari 0`);
+          return;
+        }
+        if (isNaN(service.quantity) || !isFinite(service.quantity) || !Number.isInteger(service.quantity)) {
+          toast.error(`Jumlah untuk layanan "${svc.name}" harus berupa bilangan bulat yang valid`);
+          return;
+        }
+      }
+    }
+    
+    // Validate discount and surcharge
+    if (formData.discount < 0 || isNaN(formData.discount) || !isFinite(formData.discount)) {
+      toast.error("Diskon harus berupa angka yang valid (>= 0)");
+      return;
+    }
+    if (formData.surcharge < 0 || isNaN(formData.surcharge) || !isFinite(formData.surcharge)) {
+      toast.error("Tambahan harus berupa angka yang valid (>= 0)");
       return;
     }
 
@@ -693,17 +774,39 @@ export const OrderModal = ({ order, onClose }: OrderModalProps) => {
                               </Label>
               <Input
                 type="number"
-                                step={service?.unit === "kg" ? "0.1" : "1"}
-                min="0.1"
-                                value={service?.unit === "kg" ? serviceItem.weight || "" : serviceItem.quantity || ""}
-                                onChange={(e) => {
-                                  const value = parseFloat(e.target.value) || 0;
-                                  if (service?.unit === "kg") {
-                                    handleServiceChange(index, "weight", value);
-                                  } else {
-                                    handleServiceChange(index, "quantity", value);
-                                  }
-                                }}
+                step={service?.unit === "kg" ? "0.1" : "1"}
+                min={service?.unit === "kg" ? "0.1" : "1"}
+                value={service?.unit === "kg" ? serviceItem.weight || "" : serviceItem.quantity || ""}
+                onChange={(e) => {
+                  const inputValue = e.target.value;
+                  // Allow empty input for better UX
+                  if (inputValue === "") {
+                    if (service?.unit === "kg") {
+                      handleServiceChange(index, "weight", undefined);
+                    } else {
+                      handleServiceChange(index, "quantity", undefined);
+                    }
+                    return;
+                  }
+                  const value = parseFloat(inputValue);
+                  // Validate positive number
+                  if (isNaN(value) || value <= 0) {
+                    toast.error(service?.unit === "kg" 
+                      ? "Berat harus lebih dari 0" 
+                      : "Jumlah harus lebih dari 0");
+                    return;
+                  }
+                  // For quantity, ensure it's an integer
+                  if (service?.unit !== "kg" && !Number.isInteger(value)) {
+                    toast.error("Jumlah harus berupa bilangan bulat");
+                    return;
+                  }
+                  if (service?.unit === "kg") {
+                    handleServiceChange(index, "weight", value);
+                  } else {
+                    handleServiceChange(index, "quantity", Math.floor(value));
+                  }
+                }}
                 required
               />
             </div>
@@ -833,8 +936,21 @@ export const OrderModal = ({ order, onClose }: OrderModalProps) => {
                 id="discount"
                 type="number"
                 min="0"
+                step="0.01"
                 value={formData.discount}
-                onChange={(e) => setFormData({ ...formData, discount: parseFloat(e.target.value) || 0 })}
+                onChange={(e) => {
+                  const inputValue = e.target.value;
+                  if (inputValue === "") {
+                    setFormData({ ...formData, discount: 0 });
+                    return;
+                  }
+                  const value = parseFloat(inputValue);
+                  if (isNaN(value) || value < 0) {
+                    toast.error("Diskon harus berupa angka >= 0");
+                    return;
+                  }
+                  setFormData({ ...formData, discount: value });
+                }}
               />
                   {membershipDiscount > 0 && (
                     <p className="text-xs text-muted-foreground">
@@ -848,8 +964,21 @@ export const OrderModal = ({ order, onClose }: OrderModalProps) => {
                 id="surcharge"
                 type="number"
                 min="0"
+                step="0.01"
                 value={formData.surcharge}
-                onChange={(e) => setFormData({ ...formData, surcharge: parseFloat(e.target.value) || 0 })}
+                onChange={(e) => {
+                  const inputValue = e.target.value;
+                  if (inputValue === "") {
+                    setFormData({ ...formData, surcharge: 0 });
+                    return;
+                  }
+                  const value = parseFloat(inputValue);
+                  if (isNaN(value) || value < 0) {
+                    toast.error("Tambahan harus berupa angka >= 0");
+                    return;
+                  }
+                  setFormData({ ...formData, surcharge: value });
+                }}
               />
             </div>
             <div className="space-y-2">

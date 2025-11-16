@@ -36,7 +36,7 @@ export const CustomerModal = ({ customer, onClose }: CustomerModalProps) => {
     }
   }, [customer]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!formData.name || !formData.phone) {
@@ -66,14 +66,50 @@ export const CustomerModal = ({ customer, onClose }: CustomerModalProps) => {
     };
 
     if (customer) {
+      // Update existing customer (local state only for now)
       updateCustomer(customer.id, customerData);
       toast.success("Pelanggan berhasil diperbarui");
+      onClose();
     } else {
-      addCustomer(customerData);
-      toast.success("Pelanggan berhasil ditambahkan");
-    }
+      // Create new customer - try API first, fallback to local state
+      try {
+        const response = await fetch('/customers', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name: formData.name,
+            phone: formData.phone,
+            email: formData.email || undefined,
+          }),
+        });
 
-    onClose();
+        if (response.ok) {
+          const result = await response.json();
+          // Use the customer data from API response if available
+          if (result.data) {
+            addCustomer(result.data);
+            toast.success("Pelanggan berhasil ditambahkan");
+          } else {
+            // Fallback to local state if API doesn't return data
+            addCustomer(customerData);
+            toast.success("Pelanggan berhasil ditambahkan");
+          }
+        } else {
+          // API failed, use local state as fallback
+          console.warn('API call failed, using local state:', response.status);
+          addCustomer(customerData);
+          toast.success("Pelanggan berhasil ditambahkan (local)");
+        }
+      } catch (error) {
+        // Network error or API unavailable, use local state
+        console.warn('API call error, using local state:', error);
+        addCustomer(customerData);
+        toast.success("Pelanggan berhasil ditambahkan (local)");
+      }
+      onClose();
+    }
   };
 
   return (

@@ -9,7 +9,7 @@ async function runOfflineTest() {
     process.exit(1);
   }
 
-  const testUrl = process.env.TEST_URL || 'httimage.pngp://localhost:7000';
+  const testUrl = process.env.TEST_URL || 'http://localhost:7000';
   
   console.log(`📋 Test Configuration:`);
   console.log(`   URL: ${testUrl}`);

@@ -14,6 +14,10 @@ import { format } from "date-fns";
 export const OrderList = () => {
   const orders = useDashboardStore((state) => state.orders);
   const deleteOrder = useDashboardStore((state) => state.deleteOrder);
+  const updateOrder = useDashboardStore((state) => state.updateOrder);
+  const sortingBags = useDashboardStore((state) => state.sortingBags);
+  const updateSortingBag = useDashboardStore((state) => state.updateSortingBag);
+  const currentRole = useDashboardStore((state) => state.currentRole);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
@@ -49,9 +53,141 @@ export const OrderList = () => {
   };
 
   const handleDelete = (orderId: string) => {
-    if (confirm("Apakah Anda yakin ingin menghapus order ini?")) {
+    const order = orders.find(o => o.id === orderId);
+    if (!order) return;
+
+    // Business rule: Cannot delete orders that are in production or completed
+    if (order.currentStage && ['washing', 'drying', 'ironing', 'packing', 'ready', 'completed'].includes(order.currentStage)) {
+      alert(
+        `Tidak dapat menghapus order yang sudah dalam tahap produksi.\n\n` +
+        `Order saat ini di tahap: ${order.currentStage}\n` +
+        `Gunakan fitur "Cancel Order" untuk membatalkan order.`
+      );
+      return;
+    }
+
+    // Business rule: Cannot delete orders that are in transit
+    if (order.currentStage === 'in-transit-to-central' || order.sortingMetadata?.status === 'in_transit_central') {
+      alert("Tidak dapat menghapus order yang sedang dalam perjalanan ke central.");
+      return;
+    }
+
+    // Check if admin approval is required
+    const requiresAdminApproval = order.sortingMetadata?.status === 'ready_for_central_pickup' || 
+                                  order.sortingMetadata?.bagId !== undefined ||
+                                  order.status === 'processing';
+
+    if (requiresAdminApproval) {
+      const adminPassword = window.prompt(
+        `Order ini memerlukan persetujuan admin untuk dihapus.\n\n` +
+        `Order: ${order.customerName} - ${order.id}\n` +
+        `Status: ${order.sortingMetadata?.status || order.status}\n\n` +
+        `Masukkan password admin untuk melanjutkan:`
+      );
+
+      if (adminPassword !== 'admin123') {
+        alert("Password admin salah. Penghapusan order dibatalkan.");
+        return;
+      }
+    }
+
+    if (confirm(`Apakah Anda yakin ingin menghapus order ${order.id}?\n\nTindakan ini tidak dapat dibatalkan.`)) {
       deleteOrder(orderId);
     }
+  };
+
+  const handleCancelOrder = (orderId: string) => {
+    const order = orders.find(o => o.id === orderId);
+    if (!order) return;
+
+    // Business rule: Cannot cancel orders that are in production or completed
+    if (order.currentStage && ['washing', 'drying', 'ironing', 'packing', 'ready', 'completed'].includes(order.currentStage)) {
+      alert(
+        `Tidak dapat membatalkan order yang sudah dalam tahap produksi.\n\n` +
+        `Order saat ini di tahap: ${order.currentStage}`
+      );
+      return;
+    }
+
+    // Business rule: Cannot cancel orders that are in transit
+    if (order.currentStage === 'in-transit-to-central' || order.sortingMetadata?.status === 'in_transit_central') {
+      alert("Tidak dapat membatalkan order yang sedang dalam perjalanan ke central.");
+      return;
+    }
+
+    // Check if admin approval is required (for orders with items in bags or ready status)
+    const requiresAdminApproval = order.sortingMetadata?.status === 'ready_for_central_pickup' || 
+                                  order.sortingMetadata?.bagId !== undefined;
+
+    if (requiresAdminApproval) {
+      const adminPassword = window.prompt(
+        `Order ini memerlukan persetujuan admin untuk dibatalkan.\n\n` +
+        `Order: ${order.customerName} - ${order.id}\n` +
+        `Status: ${order.sortingMetadata?.status || order.status}\n\n` +
+        `Masukkan password admin untuk melanjutkan:`
+      );
+
+      // Simple admin password check (in production, this should be proper authentication)
+      if (adminPassword !== 'admin123') {
+        alert("Password admin salah. Pembatalan order dibatalkan.");
+        return;
+      }
+    }
+
+    const confirmed = window.confirm(
+      `Batalkan order ${order.id} untuk ${order.customerName}?\n\n` +
+      `Status saat ini: ${order.status}\n` +
+      `Tahap: ${order.currentStage || 'reception'}\n\n` +
+      `Tindakan ini tidak dapat dibatalkan.`
+    );
+
+    if (!confirmed) return;
+
+    // Helper to get total weight
+    const getTotalOrderWeight = (order: Order) => {
+      return order.services?.reduce((sum, s) => sum + (s.weight || s.quantity || 0), 0) || order.weight || 0;
+    };
+
+    // Update order status to cancelled
+    updateOrder(orderId, {
+      status: 'cancelled',
+      updatedAt: new Date().toISOString(),
+      // Remove from bag if in bag
+      sortingMetadata: order.sortingMetadata?.bagId ? {
+        ...order.sortingMetadata,
+        status: 'cancelled',
+      } : order.sortingMetadata,
+      // Add workflow log
+      workflowLogs: [
+        ...(order.workflowLogs || []),
+        {
+          id: `log-${Date.now()}`,
+          orderId: orderId,
+          oldStep: order.currentStage || 'reception',
+          newStep: 'cancelled',
+          changedAt: new Date().toISOString(),
+          changedBy: currentRole === 'supervisor-outlet' ? 'Supervisor Outlet' : 
+                     currentRole === 'kasir' ? 'Kasir' : 'System',
+          notes: `Order dibatalkan${requiresAdminApproval ? ' (dengan persetujuan admin)' : ''}`,
+        },
+      ],
+    });
+
+    // If order was in a bag, remove it and update bag
+    if (order.sortingMetadata?.bagId) {
+      const bag = sortingBags.find(b => b.id === order.sortingMetadata?.bagId);
+      if (bag) {
+        const totalWeight = getTotalOrderWeight(order);
+        updateSortingBag(bag.id, {
+          items: bag.items.filter(id => id !== orderId),
+          totalWeight: Math.max(0, (bag.totalWeight || 0) - totalWeight),
+          expressCount: order.express ? Math.max(0, bag.expressCount - 1) : bag.expressCount,
+          regularCount: order.express ? bag.regularCount : Math.max(0, bag.regularCount - 1),
+        });
+      }
+    }
+
+    alert(`Order ${order.id} berhasil dibatalkan${requiresAdminApproval ? ' (dengan persetujuan admin)' : ''}`);
   };
 
   const handlePrintReceipt = (order: Order) => {
@@ -156,6 +292,7 @@ export const OrderList = () => {
               onView={() => handleViewDetails(order)}
               onEdit={() => handleEdit(order)}
               onDelete={() => handleDelete(order.id)}
+              onCancel={() => handleCancelOrder(order.id)}
               onPrint={() => handlePrintReceipt(order)}
             />
           ))}

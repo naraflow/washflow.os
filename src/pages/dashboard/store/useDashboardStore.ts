@@ -84,6 +84,8 @@ interface DashboardStore {
   setSelectedOutlet: (outletId?: string) => void;
   currentRole: 'kasir' | 'supervisor' | 'supervisor-outlet' | 'supervisor-produksi' | 'owner';
   setCurrentRole: (role: 'kasir' | 'supervisor' | 'supervisor-outlet' | 'supervisor-produksi' | 'owner') => void;
+  isLoggedIn: boolean;
+  setIsLoggedIn: (isLoggedIn: boolean) => void;
 }
 
 // Default services
@@ -153,6 +155,7 @@ export const useDashboardStore = create<DashboardStore>()(
       selectedTab: 'orders',
       selectedOutlet: undefined,
       currentRole: 'supervisor-outlet', // Default role
+      isLoggedIn: false,
       
       // Orders
       addOrder: (order) => set((state) => ({ orders: [...state.orders, order] })),
@@ -307,6 +310,7 @@ export const useDashboardStore = create<DashboardStore>()(
       setSelectedTab: (tab) => set({ selectedTab: tab }),
       setSelectedOutlet: (outletId) => set({ selectedOutlet: outletId }),
       setCurrentRole: (role) => set({ currentRole: role }),
+      setIsLoggedIn: (isLoggedIn) => set({ isLoggedIn }),
     }),
     {
       name: 'washflow-dashboard-storage',

@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { LogOut, User, ChevronDown } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useDashboardStore } from "../../store/useDashboardStore";
 import { format } from "date-fns";
 import { WashflowLogo } from "@/components/WashflowLogo";
@@ -27,6 +27,7 @@ export const DashboardHeader = () => {
   const customers = useDashboardStore((state) => state.customers);
   const currentRole = useDashboardStore((state) => state.currentRole);
   const setCurrentRole = useDashboardStore((state) => state.setCurrentRole);
+  const navigate = useNavigate();
   
   // Calculate today's stats
   const today = new Date().toISOString().split('T')[0];
@@ -93,11 +94,16 @@ export const DashboardHeader = () => {
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-          <Button variant="outline" size="sm" asChild>
-            <Link to="/">
-              <LogOut className="h-4 w-4 mr-2" />
-              Keluar
-            </Link>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => {
+              useDashboardStore.getState().setIsLoggedIn(false);
+              navigate("/");
+            }}
+          >
+            <LogOut className="h-4 w-4 mr-2" />
+            Keluar
           </Button>
         </div>
       </div>

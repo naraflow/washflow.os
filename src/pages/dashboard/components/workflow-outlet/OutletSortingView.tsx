@@ -30,6 +30,7 @@ export const OutletSortingView = () => {
   const updateOrder = useDashboardStore((state) => state.updateOrder);
   const addSortingBag = useDashboardStore((state) => state.addSortingBag);
   const updateSortingBag = useDashboardStore((state) => state.updateSortingBag);
+  const deleteSortingBag = useDashboardStore((state) => state.deleteSortingBag);
   const currentRole = useDashboardStore((state) => state.currentRole);
 
   const [filters, setFilters] = useState({
@@ -118,17 +119,19 @@ export const OutletSortingView = () => {
     
     // Validation: Express/Regular mix warning
     if (bag.priority === 'express' && !order.express) {
-      const confirmed = window.confirm(
-        "Bag ini untuk Express. Lanjutkan menambah item Regular?"
+      toast.warning(
+        "⚠️ Peringatan: Bag ini untuk Express, tetapi Anda menambahkan item Regular. " +
+        "Bag akan diubah menjadi Mixed priority.",
+        { duration: 5000 }
       );
-      if (!confirmed) return;
       // Update bag priority to mixed
       updateSortingBag(bag.id, { priority: 'mixed' });
     } else if (bag.priority === 'regular' && order.express) {
-      const confirmed = window.confirm(
-        "Bag ini untuk Regular. Lanjutkan menambah item Express?"
+      toast.warning(
+        "⚠️ Peringatan: Bag ini untuk Regular, tetapi Anda menambahkan item Express. " +
+        "Bag akan diubah menjadi Mixed priority.",
+        { duration: 5000 }
       );
-      if (!confirmed) return;
       // Update bag priority to mixed
       updateSortingBag(bag.id, { priority: 'mixed' });
     }
@@ -182,16 +185,47 @@ export const OutletSortingView = () => {
       return;
     }
 
-    // Find order by RFID
-    const order = outletSortingOrders.find(o => o.rfidTagId === scannedRfid.trim());
-    
-    if (!order) {
-      toast.error("RFID tidak ditemukan atau order belum siap untuk sorting");
+    if (!selectedBagForRfid) {
+      toast.error("Pilih bag terlebih dahulu");
       return;
     }
 
-    if (!selectedBagForRfid) {
-      toast.error("Pilih bag terlebih dahulu");
+    // Normalize RFID format (remove spaces, convert to uppercase, handle dashes)
+    const normalizedScannedRfid = scannedRfid.trim().toUpperCase().replace(/\s+/g, '');
+    
+    // Find order by RFID - try exact match first, then normalized match
+    let order = outletSortingOrders.find(o => {
+      if (!o.rfidTagId) return false;
+      const normalizedOrderRfid = o.rfidTagId.toUpperCase().replace(/\s+/g, '');
+      return normalizedOrderRfid === normalizedScannedRfid || 
+             o.rfidTagId.trim().toUpperCase() === normalizedScannedRfid;
+    });
+    
+    // If not found in outlet sorting orders, check all orders (for debugging)
+    if (!order) {
+      const allOrders = orders.filter(o => {
+        if (!o.rfidTagId) return false;
+        const normalizedOrderRfid = o.rfidTagId.toUpperCase().replace(/\s+/g, '');
+        return normalizedOrderRfid === normalizedScannedRfid || 
+               o.rfidTagId.trim().toUpperCase() === normalizedScannedRfid;
+      });
+      
+      if (allOrders.length > 0) {
+        const foundOrder = allOrders[0];
+        // Check if order is tagged but not in sorting stage
+        if (foundOrder.taggingStatus === 'tagged' && foundOrder.currentStage !== 'sorting') {
+          toast.error("Order sudah di-tag tapi belum masuk ke tahap sorting. Pastikan order sudah siap untuk sorting.");
+          return;
+        } else if (foundOrder.taggingStatus !== 'tagged') {
+          toast.error("Order belum di-tag RFID. Tag order terlebih dahulu.");
+          return;
+        } else {
+          toast.error("Order tidak ditemukan di daftar sorting. Pastikan order sudah siap untuk sorting.");
+          return;
+        }
+      }
+      
+      toast.error(`RFID "${scannedRfid.trim()}" tidak ditemukan atau order belum siap untuk sorting`);
       return;
     }
 
@@ -204,11 +238,201 @@ export const OutletSortingView = () => {
     setSelectedBagForRfid(null);
   };
 
+  // Remove item from bag
+  const handleRemoveFromBag = (orderId: string, bagId: string) => {
+    const bag = sortingBags.find(b => b.id === bagId);
+    const order = orders.find(o => o.id === orderId);
+    
+    if (!bag || !order) return;
+
+    // Business rule: Cannot remove items from ready or in_transit bags
+    if (bag.status === 'ready' || bag.status === 'in_transit') {
+      toast.error(`Tidak dapat menghapus item dari bag yang sudah ${bag.status === 'ready' ? 'ready' : 'in transit'}.`);
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Hapus order ${order.customerName} dari bag ${bag.bagNumber}?`
+    );
+    if (!confirmed) return;
+
+    const totalWeight = getTotalOrderWeight(order);
+    const newItems = bag.items.filter(id => id !== orderId);
+    
+    // Update bag - remove item and recalculate weight/counts
+    updateSortingBag(bag.id, {
+      items: newItems,
+      totalWeight: Math.max(0, (bag.totalWeight || 0) - totalWeight),
+      expressCount: order.express ? Math.max(0, bag.expressCount - 1) : bag.expressCount,
+      regularCount: order.express ? bag.regularCount : Math.max(0, bag.regularCount - 1),
+      // Update priority if bag becomes empty or single type
+      priority: newItems.length === 0 ? 'mixed' : 
+                (bag.expressCount === 1 && order.express) ? 'regular' :
+                (bag.regularCount === 1 && !order.express) ? 'express' :
+                bag.priority,
+    });
+
+    // Update order - remove from bag
+    updateOrder(orderId, {
+      sortingMetadata: {
+        status: 'pending_sorting',
+        bagId: undefined,
+        sortedAt: undefined,
+      },
+    });
+
+    toast.success(`Order dihapus dari ${bag.bagNumber}. Kapasitas bag: ${((bag.totalWeight || 0) - totalWeight).toFixed(1)}kg`);
+  };
+
+  // Delete bag with business rule checks
+  const handleDeleteBag = (bagId: string) => {
+    const bag = sortingBags.find(b => b.id === bagId);
+    if (!bag) return;
+
+    // Business rule: Cannot delete ready or in_transit bags
+    if (bag.status === 'ready' || bag.status === 'in_transit') {
+      toast.error(
+        `Tidak dapat menghapus bag yang sudah ${bag.status === 'ready' ? 'ready untuk pickup' : 'in transit'}. ` +
+        `Bag harus dikembalikan ke status 'filling' terlebih dahulu.`
+      );
+      return;
+    }
+
+    // Business rule: Cannot delete bags with items (must remove items first)
+    if (bag.items.length > 0) {
+      const confirmed = window.confirm(
+        `Bag ${bag.bagNumber} masih berisi ${bag.items.length} item. ` +
+        `Hapus bag akan mengembalikan semua item ke sorting queue. Lanjutkan?`
+      );
+      if (!confirmed) return;
+
+      // Return all items to sorting queue
+      bag.items.forEach(orderId => {
+        updateOrder(orderId, {
+          sortingMetadata: {
+            status: 'pending_sorting',
+            bagId: undefined,
+            sortedAt: undefined,
+          },
+        });
+      });
+    }
+
+    deleteSortingBag(bagId);
+    toast.success(`Bag ${bag.bagNumber} berhasil dihapus`);
+  };
+
+  // Cancel order with admin approval
+  const handleCancelOrder = (orderId: string) => {
+    const order = orders.find(o => o.id === orderId);
+    if (!order) return;
+
+    // Business rule: Cannot cancel orders that are in production or completed
+    if (order.currentStage && ['washing', 'drying', 'ironing', 'packing', 'ready', 'completed'].includes(order.currentStage)) {
+      toast.error(
+        `Tidak dapat membatalkan order yang sudah dalam tahap produksi. ` +
+        `Order saat ini di tahap: ${order.currentStage}`
+      );
+      return;
+    }
+
+    // Business rule: Cannot cancel orders that are in transit
+    if (order.currentStage === 'in-transit-to-central' || order.sortingMetadata?.status === 'in_transit_central') {
+      toast.error("Tidak dapat membatalkan order yang sedang dalam perjalanan ke central.");
+      return;
+    }
+
+    // Check if admin approval is required (for orders with items in bags or ready status)
+    const requiresAdminApproval = order.sortingMetadata?.status === 'ready_for_central_pickup' || 
+                                  order.sortingMetadata?.bagId !== undefined;
+
+    if (requiresAdminApproval) {
+      const adminPassword = window.prompt(
+        `Order ini memerlukan persetujuan admin untuk dibatalkan.\n\n` +
+        `Order: ${order.customerName} - ${order.id}\n` +
+        `Status: ${order.sortingMetadata?.status || order.status}\n\n` +
+        `Masukkan password admin untuk melanjutkan:`
+      );
+
+      // Simple admin password check (in production, this should be proper authentication)
+      if (adminPassword !== 'admin123') {
+        toast.error("Password admin salah. Pembatalan order dibatalkan.");
+        return;
+      }
+    }
+
+    const confirmed = window.confirm(
+      `Batalkan order ${order.id} untuk ${order.customerName}?\n\n` +
+      `Status saat ini: ${order.status}\n` +
+      `Tahap: ${order.currentStage || 'reception'}\n\n` +
+      `Tindakan ini tidak dapat dibatalkan.`
+    );
+
+    if (!confirmed) return;
+
+    // Update order status to cancelled
+    updateOrder(orderId, {
+      status: 'cancelled',
+      updatedAt: new Date().toISOString(),
+      // Remove from bag if in bag
+      sortingMetadata: order.sortingMetadata?.bagId ? {
+        ...order.sortingMetadata,
+        status: 'cancelled',
+      } : order.sortingMetadata,
+      // Add workflow log
+      workflowLogs: [
+        ...(order.workflowLogs || []),
+        {
+          id: `log-${Date.now()}`,
+          orderId: orderId,
+          oldStep: order.currentStage || 'reception',
+          newStep: 'cancelled',
+          changedAt: new Date().toISOString(),
+          changedBy: currentRole === 'supervisor-outlet' ? 'Supervisor Outlet' : 
+                     currentRole === 'kasir' ? 'Kasir' : 'System',
+          notes: `Order dibatalkan${requiresAdminApproval ? ' (dengan persetujuan admin)' : ''}`,
+        },
+      ],
+    });
+
+    // If order was in a bag, remove it and update bag
+    if (order.sortingMetadata?.bagId) {
+      const bag = sortingBags.find(b => b.id === order.sortingMetadata?.bagId);
+      if (bag) {
+        const totalWeight = getTotalOrderWeight(order);
+        updateSortingBag(bag.id, {
+          items: bag.items.filter(id => id !== orderId),
+          totalWeight: Math.max(0, (bag.totalWeight || 0) - totalWeight),
+          expressCount: order.express ? Math.max(0, bag.expressCount - 1) : bag.expressCount,
+          regularCount: order.express ? bag.regularCount : Math.max(0, bag.regularCount - 1),
+        });
+      }
+    }
+
+    toast.success(`Order ${order.id} berhasil dibatalkan${requiresAdminApproval ? ' (dengan persetujuan admin)' : ''}`);
+  };
+
   const handleFinalizeBag = (bagId: string) => {
     const bag = sortingBags.find(b => b.id === bagId);
     if (!bag || bag.items.length === 0) {
       toast.error("Bag kosong, tidak bisa di-finalize");
       return;
+    }
+
+    const maxCapacity = bag.maxCapacity || 7;
+    const isOverweight = (bag.totalWeight || 0) > maxCapacity;
+    
+    // Warn if overweight but allow finalizing with confirmation
+    if (isOverweight) {
+      const confirmed = window.confirm(
+        `⚠️ PERINGATAN: Bag ${bag.bagNumber} melebihi kapasitas maksimal!\n\n` +
+        `Berat saat ini: ${bag.totalWeight?.toFixed(1)}kg\n` +
+        `Kapasitas maksimal: ${maxCapacity}kg\n\n` +
+        `Apakah Anda yakin ingin melanjutkan finalisasi?`
+      );
+      if (!confirmed) {
+        return;
+      }
     }
 
     updateSortingBag(bagId, {
@@ -228,7 +452,10 @@ export const OutletSortingView = () => {
       });
     });
     
-    toast.success(`Bag ${bag.bagNumber} marked as ready for pickup to central`);
+    const message = isOverweight 
+      ? `Bag ${bag.bagNumber} marked as ready (OVERWEIGHT: ${bag.totalWeight?.toFixed(1)}kg / ${maxCapacity}kg)`
+      : `Bag ${bag.bagNumber} marked as ready for pickup to central`;
+    toast.success(message);
   };
 
   const handlePrintManifest = (bagId: string) => {
@@ -568,16 +795,22 @@ export const OutletSortingView = () => {
               <Button
                 size="sm"
                 variant="outline"
+                type="button"
+                data-testid="open-rfid-scan-button"
                 onClick={() => {
                   if (activeBags.length === 0) {
                     toast.error("Buat bag terlebih dahulu");
                     return;
                   }
-                  setSelectedBagForRfid(activeBags[0].id);
+                  // Auto-select the first active bag if not already selected
+                  if (!selectedBagForRfid || !activeBags.find(b => b.id === selectedBagForRfid)) {
+                    setSelectedBagForRfid(activeBags[0].id);
+                  }
                   setRfidScanDialog(true);
                 }}
+                className="gap-2"
               >
-                <Radio className="h-4 w-4 mr-2" />
+                <Radio className="h-4 w-4" />
                 Scan RFID
               </Button>
             </div>
@@ -727,37 +960,88 @@ export const OutletSortingView = () => {
                       </div>
 
                       {bagOrders.length > 0 && (
-                        <div className="text-xs text-muted-foreground max-h-32 overflow-y-auto">
+                        <div className="text-xs text-muted-foreground max-h-32 overflow-y-auto space-y-1">
                           <div className="font-semibold mb-1">Items:</div>
-                          {bagOrders.map(order => (
-                            <div key={order.id} className="truncate">
-                              {order.customerName} - {order.services?.map(s => s.serviceName).join(", ") || order.serviceName}
-                            </div>
-                          ))}
+                          {bagOrders.map(order => {
+                            const orderWeight = getTotalOrderWeight(order);
+                            return (
+                              <div key={order.id} className="flex items-center justify-between p-1 hover:bg-muted rounded group">
+                                <div className="truncate flex-1">
+                                  {order.customerName} - {order.services?.map(s => s.serviceName).join(", ") || order.serviceName}
+                                  <span className="text-muted-foreground ml-1">({orderWeight}kg)</span>
+                                </div>
+                                {bag.status === 'filling' && (
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => handleRemoveFromBag(order.id, bag.id)}
+                                    className="h-6 w-6 p-0 text-destructive hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                                    type="button"
+                                    data-testid={`remove-item-${order.id}-from-bag-${bag.id}`}
+                                    title="Hapus item dari bag"
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </Button>
+                                )}
+                              </div>
+                            );
+                          })}
                         </div>
                       )}
 
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 flex-wrap">
                         {bag.status === 'filling' && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleFinalizeBag(bag.id)}
-                            className="flex-1"
-                            disabled={isOverweight}
-                          >
-                            Mark Ready
-                          </Button>
+                          <>
+                            <Button
+                              size="sm"
+                              variant="default"
+                              onClick={() => {
+                                setSelectedBagForRfid(bag.id);
+                                setRfidScanDialog(true);
+                              }}
+                              className="flex-1 gap-2"
+                              data-testid={`scan-add-bag-${bag.id}`}
+                              type="button"
+                            >
+                              <Radio className="h-4 w-4" />
+                              Scan & Add
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant={isOverweight ? "destructive" : "outline"}
+                              onClick={() => handleFinalizeBag(bag.id)}
+                              className="flex-1"
+                              type="button"
+                              title={isOverweight ? `Bag overweight: ${bag.totalWeight?.toFixed(1)}kg / ${maxCapacity}kg` : "Mark bag as ready for pickup"}
+                            >
+                              {isOverweight ? "⚠️ Mark Ready (Overweight)" : "Mark Ready"}
+                            </Button>
+                          </>
                         )}
                         <Button
                           size="sm"
                           variant="outline"
                           onClick={() => handlePrintManifest(bag.id)}
                           className="flex-1"
+                          type="button"
                         >
                           <Printer className="h-4 w-4 mr-2" />
                           Print Manifest
                         </Button>
+                        {bag.status === 'filling' && (
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => handleDeleteBag(bag.id)}
+                            className="flex-1"
+                            type="button"
+                            data-testid={`delete-bag-${bag.id}`}
+                            title={bag.items.length > 0 ? "Hapus bag (akan mengembalikan semua item ke sorting queue)" : "Hapus bag kosong"}
+                          >
+                            <X className="h-4 w-4 mr-2" />
+                            Delete Bag
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </Card>
@@ -783,8 +1067,17 @@ export const OutletSortingView = () => {
               <Input
                 value={scannedRfid}
                 onChange={(e) => setScannedRfid(e.target.value)}
+                onKeyDown={(e) => {
+                  // Allow Enter key to trigger scan
+                  if (e.key === 'Enter' && scannedRfid.trim() && selectedBagForRfid) {
+                    e.preventDefault();
+                    handleScanRFID();
+                  }
+                }}
                 placeholder="E50F-C8AA-7008"
                 className="font-mono"
+                data-testid="rfid-uid-input"
+                autoFocus
               />
             </div>
             <div>
@@ -811,7 +1104,12 @@ export const OutletSortingView = () => {
             }}>
               Cancel
             </Button>
-            <Button onClick={handleScanRFID}>
+            <Button 
+              onClick={handleScanRFID}
+              type="button"
+              data-testid="scan-add-button"
+              disabled={!scannedRfid.trim() || !selectedBagForRfid}
+            >
               <Radio className="h-4 w-4 mr-2" />
               Scan & Add
             </Button>

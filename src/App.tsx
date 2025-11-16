@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { testSpriteClient } from "@/lib/testsprite";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import Features from "./pages/Features";
@@ -40,6 +41,22 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route 
+              path="/supervisor-outlet" 
+              element={
+                <ProtectedRoute allowedRoles={['supervisor-outlet']}>
+                  <Dashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/supervisor-production" 
+              element={
+                <ProtectedRoute allowedRoles={['supervisor-produksi']}>
+                  <Dashboard />
+                </ProtectedRoute>
+              } 
+            />
             <Route path="/features" element={<Features />} />
             <Route path="/benefits" element={<Benefits />} />
             <Route path="/about" element={<About />} />

@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Eye, Edit, Trash2, Printer } from "lucide-react";
+import { Eye, Edit, Trash2, Printer, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { Order } from "../../types";
 import { format } from "date-fns";
@@ -11,10 +11,11 @@ interface OrderCardProps {
   onView: () => void;
   onEdit: () => void;
   onDelete: () => void;
+  onCancel?: () => void;
   onPrint: () => void;
 }
 
-export const OrderCard = ({ order, onView, onEdit, onDelete, onPrint }: OrderCardProps) => {
+export const OrderCard = ({ order, onView, onEdit, onDelete, onCancel, onPrint }: OrderCardProps) => {
   // Get dynamic status based on workflow
   const dynamicStatus = getOrderStatusFromWorkflow(order);
   
@@ -58,16 +59,33 @@ export const OrderCard = ({ order, onView, onEdit, onDelete, onPrint }: OrderCar
           </div>
           
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={onView}>
+            <Button variant="outline" size="sm" onClick={onView} title="Lihat Detail">
               <Eye className="h-4 w-4" />
             </Button>
-            <Button variant="outline" size="sm" onClick={onEdit}>
+            <Button variant="outline" size="sm" onClick={onEdit} title="Edit Order">
               <Edit className="h-4 w-4" />
             </Button>
-            <Button variant="outline" size="sm" onClick={onPrint}>
+            <Button variant="outline" size="sm" onClick={onPrint} title="Print Receipt">
               <Printer className="h-4 w-4" />
             </Button>
-            <Button variant="outline" size="sm" onClick={onDelete} className="text-destructive hover:text-destructive">
+            {onCancel && order.status !== 'cancelled' && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={onCancel} 
+                className="text-orange-600 hover:text-orange-700"
+                title="Cancel Order"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={onDelete} 
+              className="text-destructive hover:text-destructive"
+              title="Delete Order"
+            >
               <Trash2 className="h-4 w-4" />
             </Button>
           </div>

@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { useDashboardStore } from "../../store/useDashboardStore";
 import type { Order } from "../../types";
 import { toast } from "sonner";
-import { CheckCircle2, Circle, Radio, Camera, Upload, X } from "lucide-react";
+import { CheckCircle2, Circle, Radio, Camera, Upload, X, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
 
 interface TaggingModalProps {
@@ -25,8 +25,11 @@ export const TaggingModal = ({ order, onClose, onTagged }: TaggingModalProps) =>
   const [tagType, setTagType] = useState<'rfid' | 'qr'>('rfid');
   const [taggingPhoto, setTaggingPhoto] = useState<string | null>(null);
   const [isScanning, setIsScanning] = useState(false);
+  const [isMissingRfid, setIsMissingRfid] = useState(false);
+  const [rfidError, setRfidError] = useState<string | null>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const rfidInputRef = useRef<HTMLInputElement>(null);
 
   // Steps progress
   const steps = [
@@ -37,9 +40,22 @@ export const TaggingModal = ({ order, onClose, onTagged }: TaggingModalProps) =>
     { id: 5, label: "Tag berhasil terhubung", completed: false },
   ];
 
+  // Validate RFID UID format
+  const validateRfidUid = (uid: string): boolean => {
+    if (!uid || uid.trim().length === 0) {
+      return false;
+    }
+    // Accept formats like: XXXX-XXXX-XXXX or XXXXXXXXXXXX
+    const cleaned = uid.replace(/-/g, '').toUpperCase();
+    // Should be alphanumeric and at least 8 characters
+    return /^[A-Z0-9]{8,}$/.test(cleaned);
+  };
+
   // Simulate RFID scan (in real app, this would connect to RFID reader)
   const handleScanRFID = () => {
     setIsScanning(true);
+    setRfidError(null);
+    setIsMissingRfid(false);
     // Simulate RFID reader scan
     setTimeout(() => {
       // Generate mock RFID UID
@@ -48,6 +64,27 @@ export const TaggingModal = ({ order, onClose, onTagged }: TaggingModalProps) =>
       setIsScanning(false);
       toast.success("RFID tag berhasil dibaca!");
     }, 1500);
+  };
+
+  // Handle manual RFID input
+  const handleRfidInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.toUpperCase();
+    setRfidUid(value);
+    setRfidError(null);
+    setIsMissingRfid(false);
+    
+    // Validate on blur or when user stops typing
+    if (value.length > 0 && !validateRfidUid(value)) {
+      setRfidError("Format RFID UID tidak valid. Gunakan format: XXXX-XXXX-XXXX");
+    }
+  };
+
+  // Handle Missing RFID flow
+  const handleMissingRfid = () => {
+    setIsMissingRfid(true);
+    setRfidUid("");
+    setRfidError(null);
+    toast.info("Mode Missing RFID diaktifkan. Anda dapat melanjutkan tanpa RFID atau menggunakan QR Code.");
   };
 
   const handlePhotoCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -81,21 +118,40 @@ export const TaggingModal = ({ order, onClose, onTagged }: TaggingModalProps) =>
   };
 
   const handleSubmit = () => {
-    if (!rfidUid && tagType === 'rfid') {
-      toast.error("Mohon scan RFID tag terlebih dahulu");
-      return;
+    // Validate RFID if not in missing RFID mode
+    if (tagType === 'rfid' && !isMissingRfid) {
+      if (!rfidUid || rfidUid.trim().length === 0) {
+        setRfidError("Mohon scan atau masukkan RFID UID terlebih dahulu");
+        toast.error("RFID UID tidak boleh kosong");
+        return;
+      }
+      
+      if (!validateRfidUid(rfidUid)) {
+        setRfidError("Format RFID UID tidak valid. Gunakan format: XXXX-XXXX-XXXX");
+        toast.error("Format RFID UID tidak valid");
+        return;
+      }
     }
+
+    // If missing RFID, switch to QR code
+    const finalTagType = isMissingRfid ? 'qr' : tagType;
+    const finalTagId = isMissingRfid ? `QR-MISSING-${order.id}-${Date.now()}` : (rfidUid || `QR-${order.id}`);
 
     // Update order with tagging information
     const updatedOrder: Partial<Order> = {
-      rfidTagId: rfidUid || `QR-${order.id}`,
+      rfidTagId: finalTagId,
       taggingStatus: 'tagged',
-      taggedBy: currentRole === 'supervisor' ? 'Supervisor' : 'System',
+      taggedBy: currentRole === 'supervisor-outlet' ? 'Supervisor Outlet' : 
+                currentRole === 'supervisor' ? 'Supervisor' : 'System',
       taggedAt: new Date().toISOString(),
-      tagType: tagType,
+      tagType: finalTagType,
       currentStage: 'sorting', // Auto-move to sorting
       status: 'processing', // Update status to processing when RFID is tagged
       updatedAt: new Date().toISOString(),
+      // Store tagging photo if uploaded
+      initialConditionPhotos: taggingPhoto 
+        ? [...(order.initialConditionPhotos || []), taggingPhoto]
+        : order.initialConditionPhotos,
       // Add workflow log
       workflowLogs: [
         ...(order.workflowLogs || []),
@@ -105,14 +161,21 @@ export const TaggingModal = ({ order, onClose, onTagged }: TaggingModalProps) =>
           oldStep: 'reception',
           newStep: 'sorting',
           changedAt: new Date().toISOString(),
-          changedBy: currentRole === 'supervisor' ? 'Supervisor' : 'System',
-          notes: `Tag ${tagType.toUpperCase()} berhasil dipasang: ${rfidUid || 'QR Code'}`,
+          changedBy: currentRole === 'supervisor-outlet' ? 'Supervisor Outlet' : 
+                     currentRole === 'supervisor' ? 'Supervisor' : 'System',
+          notes: isMissingRfid 
+            ? `Tag QR Code digunakan (RFID hilang): ${finalTagId}`
+            : `Tag ${finalTagType.toUpperCase()} berhasil dipasang: ${finalTagId}`,
         },
       ],
     };
 
     updateOrder(order.id, updatedOrder);
-    toast.success("Tagging berhasil! Order dipindahkan ke Sorting Queue");
+    toast.success(
+      isMissingRfid 
+        ? "Tagging berhasil dengan QR Code (RFID hilang)! Order dipindahkan ke Sorting Queue"
+        : "Tagging berhasil! Order dipindahkan ke Sorting Queue"
+    );
     onTagged();
     onClose();
   };
@@ -195,30 +258,83 @@ export const TaggingModal = ({ order, onClose, onTagged }: TaggingModalProps) =>
 
           {tagType === 'rfid' && (
             <div className="space-y-2">
-              <Label>RFID UID</Label>
-              <div className="flex gap-2">
-                <Input
-                  value={rfidUid}
-                  onChange={(e) => setRfidUid(e.target.value.toUpperCase())}
-                  placeholder="32AC-9921-55F7"
-                  readOnly={rfidUid.length > 0}
-                  className="font-mono"
-                />
-                <Button
-                  type="button"
-                  onClick={handleScanRFID}
-                  disabled={isScanning}
-                  className="gap-2"
-                >
-                  <Radio className="h-4 w-4" />
-                  {isScanning ? "Scanning..." : "Scan RFID"}
-                </Button>
+              <div className="flex items-center justify-between">
+                <Label>RFID UID</Label>
+                {!isMissingRfid && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleMissingRfid}
+                    className="text-xs text-destructive hover:text-destructive"
+                    data-testid="missing-rfid-button"
+                  >
+                    <AlertCircle className="h-3 w-3 mr-1" />
+                    RFID Hilang?
+                  </Button>
+                )}
               </div>
-              {rfidUid && (
-                <p className="text-xs text-green-600 flex items-center gap-1">
-                  <CheckCircle2 className="h-3 w-3" />
-                  RFID UID berhasil dibaca: {rfidUid}
-                </p>
+              {isMissingRfid ? (
+                <Card className="p-3 bg-yellow-50 border-yellow-200">
+                  <p className="text-sm text-yellow-800 mb-2">
+                    <AlertCircle className="h-4 w-4 inline mr-1" />
+                    <strong>Mode Missing RFID:</strong> RFID tag tidak tersedia. Sistem akan menggunakan QR Code sebagai pengganti.
+                  </p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setIsMissingRfid(false);
+                      setRfidUid("");
+                      setRfidError(null);
+                      rfidInputRef.current?.focus();
+                    }}
+                  >
+                    Kembali ke Mode RFID
+                  </Button>
+                </Card>
+              ) : (
+                <>
+                  <div className="flex gap-2">
+                    <Input
+                      ref={rfidInputRef}
+                      value={rfidUid}
+                      onChange={handleRfidInputChange}
+                      onBlur={() => {
+                        if (rfidUid && !validateRfidUid(rfidUid)) {
+                          setRfidError("Format RFID UID tidak valid. Gunakan format: XXXX-XXXX-XXXX");
+                        }
+                      }}
+                      placeholder="32AC-9921-55F7 atau masukkan manual"
+                      className="font-mono"
+                      data-testid="rfid-uid-input"
+                      autoFocus
+                    />
+                    <Button
+                      type="button"
+                      onClick={handleScanRFID}
+                      disabled={isScanning}
+                      className="gap-2"
+                      data-testid="scan-rfid-button"
+                    >
+                      <Radio className="h-4 w-4" />
+                      {isScanning ? "Scanning..." : "Scan RFID"}
+                    </Button>
+                  </div>
+                  {rfidError && (
+                    <p className="text-xs text-destructive flex items-center gap-1">
+                      <AlertCircle className="h-3 w-3" />
+                      {rfidError}
+                    </p>
+                  )}
+                  {rfidUid && !rfidError && validateRfidUid(rfidUid) && (
+                    <p className="text-xs text-green-600 flex items-center gap-1">
+                      <CheckCircle2 className="h-3 w-3" />
+                      RFID UID valid: {rfidUid}
+                    </p>
+                  )}
+                </>
               )}
             </div>
           )}
@@ -240,6 +356,7 @@ export const TaggingModal = ({ order, onClose, onTagged }: TaggingModalProps) =>
                 variant="outline"
                 onClick={() => cameraInputRef.current?.click()}
                 className="gap-2"
+                data-testid="capture-photo-button"
               >
                 <Camera className="h-4 w-4" />
                 Ambil Foto
@@ -250,12 +367,14 @@ export const TaggingModal = ({ order, onClose, onTagged }: TaggingModalProps) =>
                 accept="image/*"
                 onChange={handleUploadPhoto}
                 className="hidden"
+                data-testid="upload-photo-input"
               />
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => fileInputRef.current?.click()}
                 className="gap-2"
+                data-testid="upload-photo-button"
               >
                 <Upload className="h-4 w-4" />
                 Upload Foto
@@ -297,7 +416,8 @@ export const TaggingModal = ({ order, onClose, onTagged }: TaggingModalProps) =>
           <Button
             type="button"
             onClick={handleSubmit}
-            disabled={tagType === 'rfid' && !rfidUid}
+            disabled={tagType === 'rfid' && !isMissingRfid && (!rfidUid || !validateRfidUid(rfidUid))}
+            data-testid="save-tagging-button"
           >
             Simpan Tagging
           </Button>
