@@ -451,10 +451,11 @@ export const SortingView = () => {
   });
 
   // Get orders in sorting stage
+  // Include orders from 'received-at-central' (from ReceiveFromOutletView) and 'sorting' (legacy)
   const sortingOrders = useMemo(() => {
     return orders.filter((order) => {
       const currentStage = order.currentStage || 'reception';
-      return currentStage === 'sorting';
+      return currentStage === 'sorting' || currentStage === 'received-at-central';
     });
   }, [orders]);
 

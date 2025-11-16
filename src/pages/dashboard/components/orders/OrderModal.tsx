@@ -255,19 +255,19 @@ export const OrderModal = ({ order, onClose }: OrderModalProps) => {
         setInitialPhotos(order.initialConditionPhotos || []);
       } else {
         // Legacy format
-        setFormData({
-          customerName: order.customerName,
-          customerPhone: order.customerPhone,
+      setFormData({
+        customerName: order.customerName,
+        customerPhone: order.customerPhone,
           services: order.serviceId ? [{
-            serviceId: order.serviceId,
+        serviceId: order.serviceId,
             weight: order.weight || 1,
-            express: order.express || false,
+        express: order.express || false,
           }] : [],
-          discount: order.discount || 0,
-          surcharge: order.surcharge || 0,
-          paymentMethod: order.paymentMethod,
-          notes: order.notes || "",
-        });
+        discount: order.discount || 0,
+        surcharge: order.surcharge || 0,
+        paymentMethod: order.paymentMethod,
+        notes: order.notes || "",
+      });
         setInitialPhotos(order.initialConditionPhotos || []);
       }
     }
@@ -373,7 +373,7 @@ export const OrderModal = ({ order, onClose }: OrderModalProps) => {
     // Build services array
     const orderServices: OrderServiceItem[] = formData.services.map((serviceItem) => {
       const service = services.find((s) => s.id === serviceItem.serviceId);
-      if (!service) {
+    if (!service) {
         throw new Error(`Service ${serviceItem.serviceId} not found`);
       }
       
@@ -449,7 +449,7 @@ export const OrderModal = ({ order, onClose }: OrderModalProps) => {
     // Get first service for backward compatibility (deprecated fields)
     const firstService = orderServices[0];
     const totalWeight = orderServices.reduce((sum, s) => sum + (s.weight || s.quantity || 0), 0);
-    
+
     const orderData: Order = {
       id: orderId,
       customerName: formData.customerName,
@@ -552,7 +552,7 @@ export const OrderModal = ({ order, onClose }: OrderModalProps) => {
           {/* Step 1: Basic Information */}
           {currentStep === 1 && (
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="customerPhone">Nomor Telepon *</Label>
                   <div className="relative">
@@ -571,15 +571,15 @@ export const OrderModal = ({ order, onClose }: OrderModalProps) => {
                     <p className="text-xs text-muted-foreground">Mencari data pelanggan...</p>
                   )}
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="customerName">Nama Pelanggan *</Label>
-                  <Input
-                    id="customerName"
-                    value={formData.customerName}
-                    onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
-                    required
-                  />
-                </div>
+            <div className="space-y-2">
+              <Label htmlFor="customerName">Nama Pelanggan *</Label>
+              <Input
+                id="customerName"
+                value={formData.customerName}
+                onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
+                required
+              />
+            </div>
               </div>
 
               {/* Customer Info Card */}
@@ -636,7 +636,7 @@ export const OrderModal = ({ order, onClose }: OrderModalProps) => {
                               </span>
                             </div>
                           ))}
-                        </div>
+            </div>
                       </div>
                     )}
                   </CardContent>
@@ -657,7 +657,7 @@ export const OrderModal = ({ order, onClose }: OrderModalProps) => {
                     <Plus className="h-4 w-4" />
                     Tambah Layanan
                   </Button>
-                </div>
+          </div>
 
                 {formData.services.map((serviceItem, index) => {
                   const service = services.find((s) => s.id === serviceItem.serviceId);
@@ -665,36 +665,36 @@ export const OrderModal = ({ order, onClose }: OrderModalProps) => {
                     <Card key={index} className="p-4">
                       <div className="flex items-start gap-4">
                         <div className="flex-1 space-y-3">
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
                               <Label>Layanan {index + 1} *</Label>
-                              <Select
+              <Select
                                 value={serviceItem.serviceId}
                                 onValueChange={(value) => handleServiceChange(index, "serviceId", value)}
-                                required
-                              >
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Pilih Layanan" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {services
-                                    .filter((s) => s.isActive)
+                required
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Pilih Layanan" />
+                </SelectTrigger>
+                <SelectContent>
+                  {services
+                    .filter((s) => s.isActive)
                                     .map((svc) => (
                                       <SelectItem key={svc.id} value={svc.id}>
                                         {svc.name} - Rp {svc.unitPrice.toLocaleString("id-ID")}/{svc.unit}
-                                      </SelectItem>
-                                    ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <div className="space-y-2">
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
                               <Label>
                                 {service?.unit === "kg" ? "Berat (kg) *" : "Jumlah *"}
                               </Label>
-                              <Input
-                                type="number"
+              <Input
+                type="number"
                                 step={service?.unit === "kg" ? "0.1" : "1"}
-                                min="0.1"
+                min="0.1"
                                 value={service?.unit === "kg" ? serviceItem.weight || "" : serviceItem.quantity || ""}
                                 onChange={(e) => {
                                   const value = parseFloat(e.target.value) || 0;
@@ -704,20 +704,20 @@ export const OrderModal = ({ order, onClose }: OrderModalProps) => {
                                     handleServiceChange(index, "quantity", value);
                                   }
                                 }}
-                                required
-                              />
-                            </div>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <Checkbox
+                required
+              />
+            </div>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Checkbox
                               id={`express-${index}`}
                               checked={serviceItem.express}
                               onCheckedChange={(checked) => handleServiceChange(index, "express", checked)}
                             />
                             <Label htmlFor={`express-${index}`} className="cursor-pointer text-sm">
-                              Express (50% lebih cepat, +50% harga)
-                            </Label>
-                          </div>
+              Express (50% lebih cepat, +50% harga)
+            </Label>
+          </div>
                         </div>
                         {formData.services.length > 1 && (
                           <Button
@@ -826,51 +826,51 @@ export const OrderModal = ({ order, onClose }: OrderModalProps) => {
           {/* Step 2: Advanced Options */}
           {currentStep === 2 && (
             <div className="space-y-4">
-              <div className="grid grid-cols-3 gap-4">
-                <div className="space-y-2">
+          <div className="grid grid-cols-3 gap-4">
+            <div className="space-y-2">
                   <Label htmlFor="discount">Diskon Manual (Rp)</Label>
-                  <Input
-                    id="discount"
-                    type="number"
-                    min="0"
-                    value={formData.discount}
-                    onChange={(e) => setFormData({ ...formData, discount: parseFloat(e.target.value) || 0 })}
-                  />
+              <Input
+                id="discount"
+                type="number"
+                min="0"
+                value={formData.discount}
+                onChange={(e) => setFormData({ ...formData, discount: parseFloat(e.target.value) || 0 })}
+              />
                   {membershipDiscount > 0 && (
                     <p className="text-xs text-muted-foreground">
                       Diskon Membership: {membershipDiscount}% (otomatis)
                     </p>
                   )}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="surcharge">Tambahan (Rp)</Label>
-                  <Input
-                    id="surcharge"
-                    type="number"
-                    min="0"
-                    value={formData.surcharge}
-                    onChange={(e) => setFormData({ ...formData, surcharge: parseFloat(e.target.value) || 0 })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="paymentMethod">Metode Bayar *</Label>
-                  <Select
-                    value={formData.paymentMethod}
-                    onValueChange={(value) => setFormData({ ...formData, paymentMethod: value as Order["paymentMethod"] })}
-                    required
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="cash">Tunai</SelectItem>
-                      <SelectItem value="transfer">Transfer</SelectItem>
-                      <SelectItem value="qris">QRIS</SelectItem>
-                      <SelectItem value="credit">Kredit</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="surcharge">Tambahan (Rp)</Label>
+              <Input
+                id="surcharge"
+                type="number"
+                min="0"
+                value={formData.surcharge}
+                onChange={(e) => setFormData({ ...formData, surcharge: parseFloat(e.target.value) || 0 })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="paymentMethod">Metode Bayar *</Label>
+              <Select
+                value={formData.paymentMethod}
+                onValueChange={(value) => setFormData({ ...formData, paymentMethod: value as Order["paymentMethod"] })}
+                required
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="cash">Tunai</SelectItem>
+                  <SelectItem value="transfer">Transfer</SelectItem>
+                  <SelectItem value="qris">QRIS</SelectItem>
+                  <SelectItem value="credit">Kredit</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
 
               {/* Estimasi Selesai */}
               {estimatedCompletion && (
@@ -896,19 +896,19 @@ export const OrderModal = ({ order, onClose }: OrderModalProps) => {
                 </Card>
               )}
 
-              <div className="space-y-2">
-                <Label htmlFor="notes">Catatan</Label>
+          <div className="space-y-2">
+            <Label htmlFor="notes">Catatan</Label>
                 <Textarea
-                  id="notes"
-                  value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                  placeholder="Catatan tambahan..."
+              id="notes"
+              value={formData.notes}
+              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              placeholder="Catatan tambahan..."
                   rows={3}
-                />
-              </div>
+            />
+          </div>
 
               <div className="p-4 bg-secondary rounded-lg space-y-2">
-                <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center">
                   <span className="font-semibold">Subtotal:</span>
                   <span className="text-lg">
                     Rp {formData.services.reduce((sum, s) => {
@@ -954,24 +954,24 @@ export const OrderModal = ({ order, onClose }: OrderModalProps) => {
                 )}
                 <div className="flex justify-between items-center pt-2 border-t">
                   <span className="font-semibold text-lg">Total:</span>
-                  <span className="text-2xl font-bold text-primary">
-                    Rp {calculatedTotal.toLocaleString("id-ID")}
-                  </span>
-                </div>
-              </div>
+              <span className="text-2xl font-bold text-primary">
+                Rp {calculatedTotal.toLocaleString("id-ID")}
+              </span>
+            </div>
+          </div>
 
               <div className="flex justify-between">
                 <Button type="button" variant="outline" onClick={handleBack}>
                   ← Kembali
                 </Button>
                 <div className="flex gap-2">
-                  <Button type="button" variant="outline" onClick={onClose}>
-                    Batal
-                  </Button>
-                  <Button type="submit">
-                    {order ? "Perbarui" : "Simpan"} Order
-                  </Button>
-                </div>
+            <Button type="button" variant="outline" onClick={onClose}>
+              Batal
+            </Button>
+            <Button type="submit">
+              {order ? "Perbarui" : "Simpan"} Order
+            </Button>
+          </div>
               </div>
             </div>
           )}

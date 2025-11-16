@@ -141,9 +141,10 @@ const Dashboard = () => {
   // Other permissions
   const canCreateOrder = currentRole === 'kasir'; // Hanya kasir (admin) yang bisa create order
   const canAccessOrder = currentRole === 'kasir';
-  const canAccessCustomers = currentRole === 'kasir' || isSupervisorOutlet || isSupervisorProduksi || isSupervisorLegacy;
-  const canAccessServices = isSupervisorProduksi || isSupervisorLegacy; // Only production supervisor manages services
-  const canAccessManagement = isSupervisorProduksi || isSupervisorLegacy; // Only production supervisor manages machines/outlets
+  const canAccessCustomers = currentRole === 'kasir' || isSupervisorOutlet || isSupervisorLegacy;
+  const canAccessServices = isSupervisorLegacy; // Only legacy supervisor manages services
+  const canAccessPromo = isSupervisorOutlet || isSupervisorLegacy; // Supervisor Outlet and legacy supervisor can access promo
+  const canAccessManagement = isSupervisorLegacy; // Only legacy supervisor manages machines/outlets
   const canAccessReports = currentRole === 'owner';
 
   const handleLogin = (e: React.FormEvent) => {
@@ -633,15 +634,22 @@ const Dashboard = () => {
               <TabsList className={`grid w-full gap-2 p-2 bg-transparent ${
                 currentRole === 'kasir' ? 'grid-cols-1 lg:grid-cols-1' :
                 currentRole === 'owner' ? 'grid-cols-1 lg:grid-cols-1' :
+                isSupervisorOutlet ? 'grid-cols-2 lg:grid-cols-2' :
                 'grid-cols-3 lg:grid-cols-3'
               }`}>
-                {/* Customers - untuk kasir, supervisor */}
+                {/* Customers - untuk kasir, supervisor outlet, supervisor legacy */}
                 {canAccessCustomers && (
                   <TabsTrigger value="customers" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors">
                     Pelanggan
                   </TabsTrigger>
                 )}
-                {/* Outlets, Machines - hanya supervisor */}
+                {/* Promo - untuk supervisor outlet dan supervisor legacy */}
+                {canAccessPromo && (
+                  <TabsTrigger value="promo" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors">
+                    Promo
+                  </TabsTrigger>
+                )}
+                {/* Outlets, Machines - hanya supervisor legacy */}
                 {currentRole === 'supervisor' && (
                   <>
                     <TabsTrigger value="outlets" className="bg-muted border border-border/60 hover:bg-muted/90 hover:border-border transition-colors">
@@ -823,8 +831,8 @@ const Dashboard = () => {
           </TabsContent>
           )}
 
-          {/* Promo - hanya untuk supervisor dan owner */}
-          {canAccessServices && (
+          {/* Promo - untuk supervisor outlet dan supervisor legacy */}
+          {canAccessPromo && (
             <TabsContent value="promo" className="space-y-4">
               <Card className="p-6">
                 <h3 className="text-lg font-semibold mb-4">Promo Management</h3>

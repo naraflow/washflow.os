@@ -19,10 +19,11 @@ export const ReceiveFromOutletView = () => {
   const updateSortingBag = useDashboardStore((state) => state.updateSortingBag);
 
   // Get bags in transit from outlets
+  // Bag dengan status 'in_transit' adalah bag yang sudah di-handover dari outlet
   const incomingBags = useMemo(() => {
     return sortingBags.filter(bag => 
       bag.destination === 'central_main' && 
-      bag.status === 'sent'
+      bag.status === 'in_transit'
     );
   }, [sortingBags]);
 
@@ -30,15 +31,54 @@ export const ReceiveFromOutletView = () => {
     const bag = sortingBags.find(b => b.id === bagId);
     if (!bag) return;
     
+    // Validate manifest QR code
+    if (!bag.qrCode) {
+      toast.error("Bag tidak memiliki QR manifest");
+      return;
+    }
+    
     const bagOrders = orders.filter(o => bag.items.includes(o.id));
-    toast.success(`Manifest validated: ${bagOrders.length} items`);
+    
+    // Validate that all items in manifest have RFID tags
+    const missingRFID = bagOrders.filter(o => !o.rfidTagId || o.taggingStatus !== 'tagged');
+    if (missingRFID.length > 0) {
+      toast.error(`${missingRFID.length} items missing RFID tags in manifest`);
+      return;
+    }
+    
+    // Validate item count matches
+    if (bagOrders.length !== bag.items.length) {
+      toast.error(`Item count mismatch: manifest shows ${bag.items.length} but found ${bagOrders.length}`);
+      return;
+    }
+    
+    // Mark manifest as validated
+    updateSortingBag(bagId, {
+      manifestValidated: true,
+    });
+    
+    toast.success(`Manifest validated: ${bagOrders.length} items, ${(bag.totalWeight || 0).toFixed(1)}kg`);
   };
 
-  const handleScanRFID = (orderId: string) => {
+  const handleScanRFID = (orderId: string, bagId: string) => {
     const order = orders.find(o => o.id === orderId);
-    if (!order) return;
+    const bag = sortingBags.find(b => b.id === bagId);
     
-    toast.success(`RFID scanned: ${order.rfidTagId || 'N/A'}`);
+    if (!order || !bag) return;
+    
+    // Validate RFID exists
+    if (!order.rfidTagId || order.taggingStatus !== 'tagged') {
+      toast.error("Order tidak memiliki RFID tag yang valid");
+      return;
+    }
+    
+    // Validate RFID is in this bag
+    if (!bag.items.includes(orderId)) {
+      toast.error("RFID tidak sesuai dengan manifest bag ini");
+      return;
+    }
+    
+    toast.success(`RFID scanned: ${order.rfidTagId}`);
   };
 
   const handleReceiveBag = (bagId: string) => {
@@ -47,24 +87,38 @@ export const ReceiveFromOutletView = () => {
     
     // Validate all items
     const bagOrders = orders.filter(o => bag.items.includes(o.id));
-    const missingItems = bagOrders.filter(o => !o.rfidTagId);
+    const missingItems = bagOrders.filter(o => !o.rfidTagId || o.taggingStatus !== 'tagged');
     
     if (missingItems.length > 0) {
       toast.error(`${missingItems.length} items missing RFID tags!`);
       return;
     }
     
-    // Update bag status
+    // Validate that orders are in correct stage
+    const invalidOrders = bagOrders.filter(o => 
+      o.currentStage !== 'in-transit-to-central' && 
+      o.sortingMetadata?.status !== 'in_transit_central'
+    );
+    
+    if (invalidOrders.length > 0) {
+      toast.warning(`Some orders are not in transit status. Please verify.`);
+    }
+    
+    // Update bag status to received
     updateSortingBag(bagId, {
       status: 'received',
+      receivedAt: new Date().toISOString(),
     });
     
-    // Update all orders - move to central sorting
+    // Update all orders - move to central sorting (received at central)
+    // Orders akan muncul di Central Sorting setelah received
     bag.items.forEach(orderId => {
       updateOrder(orderId, {
-        currentStage: 'central-sorting',
+        currentStage: 'sorting', // Move to sorting stage for central facility
         sortingMetadata: {
-          status: 'received_at_central',
+          status: 'received_central',
+          bagId: bagId,
+          sortedAt: new Date().toISOString(),
         },
       });
     });
@@ -105,10 +159,21 @@ export const ReceiveFromOutletView = () => {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="text-lg font-semibold">{bag.bagNumber}</h3>
-                      <Badge variant="outline" className="bg-orange-50 text-orange-700">
-                        In Transit
-                      </Badge>
+                      <h3 className="text-lg font-semibold">{bag.bagName || bag.bagNumber}</h3>
+                      <div className="flex gap-2 mt-1">
+                        <Badge variant="outline" className="bg-orange-50 text-orange-700">
+                          In Transit to Central
+                        </Badge>
+                        {bag.priority && (
+                          <Badge variant="outline" className={
+                            bag.priority === 'express' ? 'bg-orange-50 text-orange-700' :
+                            bag.priority === 'regular' ? 'bg-blue-50 text-blue-700' :
+                            'bg-gray-50 text-gray-700'
+                          }>
+                            {bag.priority === 'express' ? 'EXPRESS' : bag.priority === 'regular' ? 'REGULAR' : 'MIXED'}
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                     {bag.qrCode && (
                       <div className="flex items-center gap-2">
@@ -117,6 +182,19 @@ export const ReceiveFromOutletView = () => {
                       </div>
                     )}
                   </div>
+                  
+                  {/* Courier Information */}
+                  {bag.handoverChecklist && (
+                    <div className="text-xs text-muted-foreground bg-blue-50 p-2 rounded">
+                      <div><strong>Courier:</strong> {bag.handoverChecklist.courierName || 'N/A'}</div>
+                      {bag.handoverChecklist.handoverTime && (
+                        <div><strong>Handover:</strong> {format(new Date(bag.handoverChecklist.handoverTime), 'dd MMM yyyy, HH:mm')}</div>
+                      )}
+                      {bag.inTransitAt && (
+                        <div><strong>In Transit:</strong> {format(new Date(bag.inTransitAt), 'dd MMM yyyy, HH:mm')}</div>
+                      )}
+                    </div>
+                  )}
 
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                     <div>
@@ -172,10 +250,10 @@ export const ReceiveFromOutletView = () => {
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() => handleScanRFID(order.id)}
+                              onClick={() => handleScanRFID(order.id, bag.id)}
                             >
                               <Radio className="h-4 w-4 mr-1" />
-                              Scan
+                              Scan RFID
                             </Button>
                           </div>
                         </Card>
@@ -189,13 +267,14 @@ export const ReceiveFromOutletView = () => {
                       variant="outline"
                       onClick={() => handleScanManifest(bag.id)}
                       className="flex-1"
+                      disabled={bag.manifestValidated}
                     >
                       <QrCode className="h-4 w-4 mr-2" />
-                      Validate Manifest
+                      {bag.manifestValidated ? 'Manifest Validated' : 'Validate Manifest'}
                     </Button>
                     <Button
                       onClick={() => handleReceiveBag(bag.id)}
-                      disabled={!allTagged}
+                      disabled={!allTagged || !bag.manifestValidated}
                       className="flex-1"
                     >
                       <CheckCircle2 className="h-4 w-4 mr-2" />

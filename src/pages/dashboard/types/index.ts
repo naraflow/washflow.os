@@ -78,7 +78,7 @@ export interface SortingBag {
   id: string;
   bagNumber: string; // Bag #001, #002, etc.
   bagName?: string; // Auto: BAG-OUTLET-A-001
-  status: 'filling' | 'ready' | 'sent' | 'in_transit'; // filling, ready for pickup, sent to central, in transit
+  status: 'filling' | 'ready' | 'in_transit' | 'received'; // filling, ready for pickup, in transit to central, received at central
   priority?: 'express' | 'regular' | 'mixed'; // Bag priority type
   items: string[]; // Order IDs in this bag
   totalWeight: number;
@@ -91,6 +91,7 @@ export interface SortingBag {
   readyAt?: string;
   sentAt?: string;
   inTransitAt?: string;
+  receivedAt?: string; // When received at central facility
   qrCode?: string; // QR manifest code
   manifestValidated?: boolean; // Whether manifest has been validated
   handoverChecklist?: {
